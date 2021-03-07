@@ -1,0 +1,11 @@
+@echo off
+
+call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\VC\Auxiliary\Build\vcvarsall.bat" x64
+
+echo set path = C:\Dev\CPP\MollyRocket_Handmade_hero_series\Sharun-s-Heros;%PATH%
+
+cd "C:\Dev\CPP\MollyRocket_Handmade_hero_series\Sharun-s-Heros\code"
+
+cls
+
+echo sublime_text.exe
