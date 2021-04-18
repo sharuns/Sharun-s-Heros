@@ -42,9 +42,9 @@ void RenderGrdaient(game_offscreen_buffer * Buffer,int BlueOffset,int GreenOffse
 		uint32 *Pixel = (uint32 *) Row; //LITTLE ENDIAN - Reason for blue bb gg rr
 		for(int x = 0 ; x < Buffer->Width; ++x){
 
-				uint8 Blue = (x + BlueOffset);
-				uint8 Green = (y + GreenOffset);
-				uint8 Red = (x + BlueOffset); //Gives a Pink tint
+				uint8 Blue = (uint8)(x + BlueOffset);
+				uint8 Green = (uint8)(y + GreenOffset);
+				uint8 Red = (uint8)(x + BlueOffset); //Gives a Pink tint
 
 				*Pixel++ = ((Green << 8) | Blue | (Red << 16));
 		}
@@ -63,7 +63,14 @@ void GameUpdateAndRenderer(game_memory * Memory,
 
 	game_state * GameState = (game_state * )Memory->PermanentStorage;
 	if(!Memory->IsInitialized){
-
+		char * Filename = __FILE__;
+		debug_read_file_result File = DEBUGPlatformReadEntireFile(Filename);
+		if(File.Contents){
+		
+			DEBUGPlatformWriteEntireFile("C:/Dev/Tesing.txt",File.ContentSize, File.Contents);
+			DEBUGPlatformFreeFileMemory(File.Contents);
+		
+		}
 		GameState->ToneHz = 256;
 		Memory->IsInitialized = true;
 	}
@@ -74,7 +81,7 @@ void GameUpdateAndRenderer(game_memory * Memory,
 	game_controller_input * Input0 = &Input->Controllers[0];
 
 	if(Input0->IsAnalog){
-		BlueOffset += (int)4.0f*(Input0->EndX);
+		BlueOffset += (int)(4.0f*(Input0->EndX));
 		ToneHz = 256 + (int)(128.0f*(Input0->EndY));
 		
 	}else{

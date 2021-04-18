@@ -16,6 +16,9 @@ Place : Chennai , India
 
 //Defined in the build.bat file
 //As assert is performance effecting so we use it only when we define the macro 
+
+
+
 #if SHARUN_DEBUG_SLOW
 #define Assert(Expression) if(!(Expression)) {*(int *)0 = 0;}
 #else
@@ -28,6 +31,30 @@ Place : Chennai , India
 #define Terabytes(Value) (Gigabytes(Value)*1024)
 
 #define ArrayCount(Array) (sizeof(Array)/sizeof((Array)[0]))
+
+inline uint32
+SafeTruncateUInt64(uint64 Value){
+
+	Assert(Value <=0xFFFFFFFF);
+	uint32 Result = (uint32)Value;
+	return Result;
+
+}
+
+//Services that the platform layer provides to the game
+
+#if SHARUN_INTERNAL
+struct debug_read_file_result{
+
+	uint32 ContentSize;
+	void * Contents;
+};
+internal debug_read_file_result DEBUGPlatformReadEntireFile(char * Filename);
+internal void *DEBUGPlatformFreeFileMemory(void * Memory);
+internal void * DEBUGPlatformReadfromFreeMemory(void * Memory);
+internal bool32 DEBUGPlatformWriteEntireFile(char * Filename, uint32 MemorySize, void * Memory);
+#endif
+
 
 struct game_offscreen_buffer{
 

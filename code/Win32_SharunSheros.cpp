@@ -71,10 +71,89 @@ X_INPUT_SET_STATE(XInputSetStateStub){
 global_variable x_input_set_state * XInputSetState_ = XInputSetStateStub;
 #define XInputSetState XInputSetState_
 
+internal debug_read_file_result
+DEBUGPlatformReadEntireFile(char * Filename)
+{
+	debug_read_file_result Result = {};
+	
+	HANDLE FileHandle = CreateFileA(Filename,GENERIC_READ,
+								   FILE_SHARE_READ,0,OPEN_EXISTING,
+								   0,0);
+	if(FileHandle!= INVALID_HANDLE_VALUE){
 
-void * PlatformLoadFile(char * FileName){
+		LARGE_INTEGER FileSize;
+		if(GetFileSizeEx(FileHandle,&FileSize)){
 
-	return 0;
+			uint32 FileSize32 = SafeTruncateUInt64(FileSize.QuadPart);
+			Result.Contents = VirtualAlloc(0,FileSize.QuadPart,MEM_RESERVE|MEM_COMMIT ,PAGE_READWRITE);
+			if(Result.Contents){ 	
+
+					DWORD BytesRead;
+					if(ReadFile(FileHandle, Result.Contents, FileSize32,&BytesRead,0) && 
+						(FileSize32 == BytesRead)){
+
+							Result.ContentSize = FileSize32; // 
+
+					}else{
+
+						DEBUGPlatformFreeFileMemory(Result.Contents);
+						Result.Contents = 0 ;
+					}
+			}
+
+		}
+		CloseHandle(FileHandle);
+	}
+
+	return (Result);
+
+}
+
+internal void*
+DEBUGPlatformFreeFileMemory(void * Memory){
+
+	if(Memory){
+
+		VirtualFree(Memory, 0, MEM_RELEASE);
+	}
+	return NULL;
+}
+
+
+#if 0
+internal 
+void * DEBUGPlatformReadfromFreeMemory(void * Memory)
+{
+		
+}
+#endif
+
+
+internal 
+bool32 DEBUGPlatformWriteEntireFile(char * Filename, uint32 MemorySize, void * Memory)
+{
+	bool32 Result = false;
+	HANDLE FileHandle = CreateFileA(Filename,GENERIC_WRITE,
+								   0,0,CREATE_ALWAYS,
+								   0,0);
+	if(FileHandle!= INVALID_HANDLE_VALUE){
+
+		DWORD BytesWritten;
+		if(WriteFile(FileHandle, Memory,MemorySize,&BytesWritten,0)){
+
+			Result = (BytesWritten == MemorySize);
+
+		}else{
+
+
+		}
+		CloseHandle(FileHandle);
+	}else{
+
+		//Log
+	}
+
+	return Result;
 }
 
 //Steps that window loader does on loading our Program to load libraries
@@ -83,7 +162,7 @@ internal void Win32LoadXInput(void){
 	//Need Diagnostic here
 	HMODULE XInputLibrary = LoadLibrary("xinput1_4.dll");
 	if(!XInputLibrary){
-		HMODULE XInputLibrary = LoadLibrary("xinput1_3.dll");
+		 XInputLibrary = LoadLibrary("xinput1_3.dll");
 	}
 	if(XInputLibrary){
 
@@ -148,7 +227,7 @@ Win32InitDSound(HWND Window, int32 SamplePerSecond,  int32 BufferSize){
 				BufferDescription.dwFlags = 0;
 				BufferDescription.dwBufferBytes = BufferSize;
 				BufferDescription.lpwfxFormat= &WaveFormat;
-				LPDIRECTSOUNDBUFFER SecondaryBuffer;
+				//LPDIRECTSOUNDBUFFER SecondaryBuffer;
 				HRESULT Error = (DirectSound->CreateSoundBuffer(&BufferDescription, &GlobalSecondaryBuffer,0));
 				if(SUCCEEDED(Error)){
 
@@ -296,7 +375,7 @@ LRESULT CALLBACK MainWindowCallback(
 		case WM_KEYUP:
 		{
 
-			uint32 VKCode = WParam;
+			uint32 VKCode = (uint32)WParam;
 			bool WasDown = ((LParam & (1 << 30)) != 0 );
 			bool IsDown = ((LParam & (1 << 31)) == 0);
 
@@ -584,7 +663,7 @@ extern "C"{
 
 
 
-				 			int MaxControllerCount = XUSER_MAX_COUNT;
+				 			DWORD MaxControllerCount = XUSER_MAX_COUNT;
 				 			if(MaxControllerCount > ArrayCount(NewInput->Controllers)){
 
 				 				MaxControllerCount = ArrayCount(NewInput->Controllers);
@@ -719,7 +798,7 @@ extern "C"{
 				 		
 				 		game_sound_output_buffer SoundBuffer = {};
 				 		SoundBuffer.SamplesPerSecond = SoundOutput.SamplesPerSecond;
-				 		SoundBuffer.SampleCount = BytesToWrite/SoundOutput.BytesPerSample;
+				 		SoundBuffer.SampleCount = (int16)((int)(BytesToWrite/SoundOutput.BytesPerSample));
 				 		SoundBuffer.Samples = Samples;
 
 
@@ -753,7 +832,7 @@ extern "C"{
 					 	int64 Cyclecount = EndCycleCount - LastCycleCount;	
 					 	int64 CounterElapsed = EndCounter.QuadPart - LastCounter.QuadPart;
 					 	int32 MSPerFrame = (int32)((1000*CounterElapsed)/PerfCountFrequency);
-					 	int32 FPS = PerfCountFrequency/CounterElapsed;
+					 	int32 FPS = (int32)(PerfCountFrequency/CounterElapsed);
 					 	int32 MCPF = (int32)(Cyclecount /(1000 * 1000));
 					 	#if 0
 					 	char Buffer[256];	
