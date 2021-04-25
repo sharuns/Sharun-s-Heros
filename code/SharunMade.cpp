@@ -78,23 +78,32 @@ void GameUpdateAndRenderer(game_memory * Memory,
 	local_persist int GreenOffset = 0 ;
 	local_persist int ToneHz = 256;
  
-	game_controller_input * Input0 = &Input->Controllers[0];
+ 	for(int ControllerIndex = 0 ;
+ 		ControllerIndex < ArrayCount(Input->Controllers);
+ 			++ControllerIndex){
+	game_controller_input * Controller = GetController(Input,ControllerIndex);
 
-	if(Input0->IsAnalog){
-		BlueOffset += (int)(4.0f*(Input0->EndX));
-		ToneHz = 256 + (int)(128.0f*(Input0->EndY));
+	if(Controller->IsAnalog){
+		OutputDebugStringA("IsAnalog\n");
+		BlueOffset += (int)(4.0f*(Controller->StickAverageX));
+		ToneHz = 256 + (int)(128.0f*(Controller->StickAverageY));
 		
 	}else{
-
-
+		OutputDebugStringA("IsNot\n");
+		if(Controller->MoveLeft.EndedDown){
+			BlueOffset -=3;
+		}
+		if(Controller->MoveRight.EndedDown){
+			BlueOffset +=3;
+		}
 
 	}
 
-	if(Input0->Down.EndedDown){
+	if(Controller->ActionDown.EndedDown){
 
 		GreenOffset += 3;
 	}
-
+	}
 	//TODO : Change later for more complex time based way, sample offset
 	GameOutputSound(SoundBuffer,ToneHz);
 	RenderGrdaient(Buffer,BlueOffset, GreenOffset, SoundBuffer);
