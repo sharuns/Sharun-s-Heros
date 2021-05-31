@@ -155,13 +155,13 @@ Win32GetLastWriteTime(char* FileName) {
 }
 
 internal win32_game_code
-Win32LoadGameCode(char * SourceDLLName){
+Win32LoadGameCode(char * SourceDLLName, char * TempDLLName){
 
 	win32_game_code Result= {};
 
 	Result.DLLLastWriteTime = Win32GetLastWriteTime(SourceDLLName);
 
-	char* TempDLLName = "SharunMade_temp.dll";
+	//char* TempDLLName = "SharunMade_temp.dll";
 
 	CopyFile(SourceDLLName, TempDLLName,FALSE);
 
@@ -767,7 +767,7 @@ Win32DebugSyncDisplay(Win32_offscreen_buffer * BackBuffer,
 
 }	
 
-/*internal void
+internal void
 CatStrings(size_t SourceCountA, char* SourceA,
 	size_t SourceCountB, char* SourceB,
 	size_t DestCount, char* Dest) {
@@ -788,7 +788,7 @@ CatStrings(size_t SourceCountA, char* SourceA,
 
 	*Dest++ = 0;
 
-}*/
+}
 
 extern "C"{
 //Entry point for windows
@@ -798,7 +798,7 @@ extern "C"{
 	  LPSTR     CommandLine,
 	  int       ShowCode)
 	{
-		/*char EXEFileName[MAX_PATH];
+		char EXEFileName[MAX_PATH];
 		DWORD SizeofFileName = GetModuleFileName(0, EXEFileName, sizeof(EXEFileName));
 		char* OnePastLastSlash = EXEFileName;
 		OutputDebugStringA("========================================\n");
@@ -811,7 +811,7 @@ extern "C"{
 		}
 		OutputDebugStringA(OnePastLastSlash);
 		OutputDebugStringA("\n");
-		
+
 		char SourceGameCodeDLLFilename[] = "SharunMade.dll";
 		char SourceGameCodeDLLFullPath[MAX_PATH];
 		CatStrings(OnePastLastSlash - EXEFileName, EXEFileName,
@@ -829,7 +829,7 @@ extern "C"{
 		OutputDebugStringA(TempGameCodeDLLFullPath );
 		OutputDebugStringA("\n");
 		OutputDebugStringA("========================================\n");
-		*/
+		
 
 		LARGE_INTEGER PerfCountFrequencyResult;
 		QueryPerformanceFrequency(&PerfCountFrequencyResult);
@@ -934,19 +934,19 @@ extern "C"{
 					DWORD AudioLatencyBytes = 0;
 					real32 AudioLatencySeconds = 0;
 					bool32 SoundIsValid = false;
-					char* SourceDLLName = "SharunMade.dll";
-					win32_game_code  Game = Win32LoadGameCode(SourceDLLName);
+					//char* SourceDLLName = "SharunMade.dll";
+					win32_game_code  Game = Win32LoadGameCode(SourceGameCodeDLLFullPath, TempGameCodeDLLFullPath);
 
 					uint64 LastCycleCount = __rdtsc();
 
 
 					while (Global_Running) {
 
-						FILETIME NewDLLWriteTime = Win32GetLastWriteTime(SourceDLLName);
+						FILETIME NewDLLWriteTime = Win32GetLastWriteTime(SourceGameCodeDLLFullPath);
 						if (CompareFileTime(&NewDLLWriteTime, &Game.DLLLastWriteTime) != 0) {
 
 							Win32UnloadGameCode(&Game);
-							Game = Win32LoadGameCode(SourceDLLName);
+							Game = Win32LoadGameCode(SourceGameCodeDLLFullPath, TempGameCodeDLLFullPath);
 						}
 
 						game_controller_input* OldKeyboardController = GetController(OldInput, 0);
