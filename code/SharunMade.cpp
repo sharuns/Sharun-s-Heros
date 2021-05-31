@@ -7,9 +7,8 @@ Place : Chennai , India
 #include "SharunMade.h"
 
 internal
-void GameOutputSound(game_sound_output_buffer * SoundBuffer, int ToneHz)
+void GameOutputSound(game_state* GameState, game_sound_output_buffer * SoundBuffer, int ToneHz)
 {
-	local_persist real32 tSine;
 	int16_t ToneVolume = 3000;
 	int WavePeriod= SoundBuffer->SamplesPerSecond/ToneHz;
 	
@@ -17,13 +16,17 @@ void GameOutputSound(game_sound_output_buffer * SoundBuffer, int ToneHz)
 	for(int SampleIndex = 0 ; 
 		SampleIndex < SoundBuffer->SampleCount ;
 		 ++SampleIndex ){
-				real32  SineValue = sinf(tSine);
+
+				real32  SineValue = sinf(GameState->tSine);
 				int16_t SampleValue = (int16_t)(SineValue * ToneVolume);
 				*SampleOut++= SampleValue;
 				*SampleOut++= SampleValue;
 
-				tSine += 2.0f*Pi32*1.0f/(real32)WavePeriod;
+				GameState-> tSine += 2.0f*Pi32*1.0f/(real32)WavePeriod;
 				//very critical for proper sound output
+				if (GameState->tSine > 2.0f * Pi32) {
+					GameState->tSine -= 2.0f * Pi32;
+				}
 		
 			}
 
@@ -31,8 +34,7 @@ void GameOutputSound(game_sound_output_buffer * SoundBuffer, int ToneHz)
 }
 
 internal 
-void RenderGrdaient(game_offscreen_buffer * Buffer,int BlueOffset,int GreenOffset,
-					game_sound_output_buffer * SoundBuffer)
+void RenderGrdaient(game_offscreen_buffer * Buffer,int BlueOffset,int GreenOffset)
 {
 
 	uint8 * Row = (uint8 *)Buffer->Memory;
@@ -44,34 +46,33 @@ void RenderGrdaient(game_offscreen_buffer * Buffer,int BlueOffset,int GreenOffse
 
 				uint8 Blue = (uint8)(x + BlueOffset);
 				uint8 Green = (uint8)(y + GreenOffset);
-				uint8 Red = (uint8)(x + BlueOffset); //Gives a Pink tint
+				//uint8 Red = (uint8)(x + BlueOffset); //Gives a Pink tint
 
-				*Pixel++ = ((Green << 8) | Blue | (Red << 16));
+				*Pixel++ = ((Green << 16) | (Blue));
 		}
 		Row += Buffer->Pitch;
 	}
 
 }
 
-internal
-void GameUpdateAndRenderer(game_memory * Memory,
-						   game_input * Input,
-						   game_offscreen_buffer * Buffer,
-						   game_sound_output_buffer * SoundBuffer){
+
+extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
+{
 
 	Assert(sizeof(game_state) <= Memory->PermanentStorageSize);
 
 	game_state * GameState = (game_state * )Memory->PermanentStorage;
 	if(!Memory->IsInitialized){
 		char * Filename = __FILE__;
-		debug_read_file_result File = DEBUGPlatformReadEntireFile(Filename);
+		debug_read_file_result File = Memory->DEBUGPlatformReadEntireFile(Filename);
 		if(File.Contents){
 		
-			DEBUGPlatformWriteEntireFile("C:/Dev/Tesing.txt",File.ContentSize, File.Contents);
-			DEBUGPlatformFreeFileMemory(File.Contents);
+			Memory->DEBUGPlatformWriteEntireFile("C:/Dev/Tesing.txt",File.ContentSize, File.Contents);
+			Memory->DEBUGPlatformFreeFileMemory(File.Contents);
 		
 		}
 		GameState->ToneHz = 256;
+		GameState->tSine = 0.0f;
 		Memory->IsInitialized = true;
 	}
 	local_persist int BlueOffset = 0 ;
@@ -84,12 +85,12 @@ void GameUpdateAndRenderer(game_memory * Memory,
 	game_controller_input * Controller = GetController(Input,ControllerIndex);
 
 	if(Controller->IsAnalog){
-		OutputDebugStringA("IsAnalog\n");
+		
 		BlueOffset += (int)(4.0f*(Controller->StickAverageX));
 		ToneHz = 256 + (int)(128.0f*(Controller->StickAverageY));
 		
 	}else{
-		OutputDebugStringA("IsNot\n");
+		
 		if(Controller->MoveLeft.EndedDown){
 			BlueOffset -=3;
 		}
@@ -102,10 +103,16 @@ void GameUpdateAndRenderer(game_memory * Memory,
 	if(Controller->ActionDown.EndedDown){
 
 		GreenOffset += 3;
-	}
+		}
 	}
 	//TODO : Change later for more complex time based way, sample offset
-	GameOutputSound(SoundBuffer,ToneHz);
-	RenderGrdaient(Buffer,BlueOffset, GreenOffset, SoundBuffer);
+	
+	RenderGrdaient(Buffer,BlueOffset, GreenOffset);
 
+}
+
+extern "C" GAME_GET_SOUND_SAMPLES(GameGetSoundSamples)
+{
+	game_state* GameState = (game_state*)Memory->PermanentStorage;
+	GameOutputSound(GameState, SoundBuffer, GameState->ToneHz);
 }
