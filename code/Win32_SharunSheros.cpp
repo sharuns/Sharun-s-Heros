@@ -511,7 +511,7 @@ Win32DisplayWindow(HDC DeviceContext,int WindowWidth,int WindowHeight,
 				  	int X,int Y, int Width, int Height){
 //Dirty rectangle update	
 	//For Debug purposes we can try disable the resizing of window
-
+	/*
 	StretchDIBits(DeviceContext,
 		0, 0, Buffer.Width, Buffer.Height,
 		0, 0, Buffer.Width, Buffer.Height,
@@ -519,9 +519,9 @@ Win32DisplayWindow(HDC DeviceContext,int WindowWidth,int WindowHeight,
 		& Buffer.BitmapInfo,
 		DIB_RGB_COLORS,
 		SRCCOPY);
-
+		*/
 	
-	/*
+	
 	StretchDIBits(DeviceContext,
 				0,0, WindowWidth, WindowHeight,
 				0,0, Buffer.Width, Buffer.Height,
@@ -529,7 +529,7 @@ Win32DisplayWindow(HDC DeviceContext,int WindowWidth,int WindowHeight,
 				&Buffer.BitmapInfo,
 				DIB_RGB_COLORS,
 				SRCCOPY);
-		*/		
+				
 }
 
 
@@ -1049,7 +1049,7 @@ extern "C"{
 					game_input Input[2] = {};
 					game_input* NewInput = &Input[0];
 					game_input* OldInput = &Input[1];
-					NewInput->SecondsToAdvanceOverUpdate = TargertSecondPerFrame;
+					//NewInput->dtForFrame = TargertSecondPerFrame;
 
 					LARGE_INTEGER LastCounter = Win32GetWallClock();
 
@@ -1066,6 +1066,8 @@ extern "C"{
 
 
 					while (Global_Running) {
+
+						NewInput->dtForFrame = TargertSecondPerFrame;
 
 						FILETIME NewDLLWriteTime = Win32GetLastWriteTime(SourceGameCodeDLLFullPath);
 						if (CompareFileTime(&NewDLLWriteTime, &Game.DLLLastWriteTime) != 0) {
@@ -1210,6 +1212,7 @@ extern "C"{
 						Buffer.Width = Global_BackBuffer.Width;
 						Buffer.Height = Global_BackBuffer.Height;
 						Buffer.Pitch = Global_BackBuffer.Pitch;
+						Buffer.BytesPerPixel = 4;
 
 						//Record the input state for live code debugging 
 						if (Win32State.InputRecordingIndex) {
