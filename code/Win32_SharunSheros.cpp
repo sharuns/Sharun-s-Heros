@@ -50,6 +50,9 @@ X_INPUT_SET_STATE(XInputSetStateStub){
 global_variable x_input_set_state * XInputSetState_ = XInputSetStateStub;
 #define XInputSetState XInputSetState_
 
+
+
+//String operations, need to create a library and move out
 internal int
 StringLength(char* String) {
 
@@ -241,7 +244,7 @@ Win32LoadGameCode(char * SourceDLLName, char * TempDLLName){
 internal void
 Win32GetInputFileLocation(win32_state*  Win32State, int SlotIndex, int DesCount, char * Dest) {
 		
-	Assert(SlotIndex == 1); 
+	//Assert(SlotIndex == 1); 
 	Win32BuildEXEPathFileName(Win32State, "Loop_Edit.hmi", DesCount, Dest);
 
 }
@@ -520,7 +523,7 @@ Win32DisplayWindow(HDC DeviceContext,int WindowWidth,int WindowHeight,
 		DIB_RGB_COLORS,
 		SRCCOPY);
 		*/
-	
+	//We can convert the rest of the area of the scree to black in case we use the Actual res.D29
 	
 	StretchDIBits(DeviceContext,
 				0,0, WindowWidth, WindowHeight,
@@ -1033,7 +1036,7 @@ extern "C"{
 				GameMemory.TransientStorage = ((uint8*)GameMemory.PermanentStorage +
 					GameMemory.PermanentStorageSize);
 
-				for (int ReplayIndex = 0; 
+				for (int ReplayIndex = 1; 
 						ReplayIndex < ArrayCount(Win32State.ReplayBuffers);
 					++ReplayIndex) {
 					win32_replay_buffer* ReplayBuffer = &Win32State.ReplayBuffers[ReplayIndex];
@@ -1049,8 +1052,7 @@ extern "C"{
 					game_input Input[2] = {};
 					game_input* NewInput = &Input[0];
 					game_input* OldInput = &Input[1];
-					//NewInput->dtForFrame = TargertSecondPerFrame;
-
+					
 					LARGE_INTEGER LastCounter = Win32GetWallClock();
 
 					int DebugTimeMarkerIndex = 0;

@@ -26,7 +26,7 @@ Place : Chennai , India
 #define global_variable static
 
 #define Pi32 3.14159265359f
-#define RoundingFraction 0.5f
+//#define RoundingFraction 0.5f
 
 typedef uint8_t uint8;
 typedef uint16_t uint16;
@@ -167,16 +167,6 @@ inline game_controller_input* GetController(game_input * Input, int ControllerIn
 	return (Result);
 }
 
-struct game_state{
-
-	/*int ToneHz;
-	int GreenOffset;
-	int BlueOffset;
-	real32 tSine;*/
-	real32 PlayerX;
-	real32 PlayerY;
-
-};
 
 struct game_memory{
 
@@ -213,3 +203,69 @@ GAME_GET_SOUND_SAMPLES(GameGetSoundSamplesStub){
 }
 
 //Service that the platform layer provides the game
+
+struct cannonical_position{
+#if 1
+	int32 TileMapX;
+	int32 TileMapY;
+
+	int32 TileX;
+	int32 TileY;
+#else
+	uint32 _TileX;
+	uint32 _TileY;
+#endif
+#if 0
+	real32 X;
+	real32 Y;
+#endif
+	real32 TileRelX;
+	real32 TileRelY;
+};
+
+
+
+struct tile_map{
+	uint32 * Tiles;
+};
+
+struct world{
+
+	real32 TileSideInMeters; 
+	int32 TileSideInPixels;
+	real32 MetersToPixels;
+	int32 CountX;
+	int32 CountY;
+
+	real32 UpperLeftX;
+	real32 UpperLeftY;
+
+/*	So, these can be removed as we are now not using pixels as our unit
+
+	real32 TileWidth;
+	real32 TileHeight;*/
+
+	int32 TileMapCountX;
+	int32 TileMapCountY;
+
+
+	tile_map * TileMaps;
+
+};
+
+
+
+
+
+struct game_state{
+
+#if 0
+	int32 PlayerTileMapX;
+	int32 PlayerTileMapY;
+
+	real32 PlayerX;
+	real32 PlayerY;
+#endif
+
+	cannonical_position PlayerP;
+};
