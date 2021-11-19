@@ -204,17 +204,20 @@ GAME_GET_SOUND_SAMPLES(GameGetSoundSamplesStub){
 
 //Service that the platform layer provides the game
 
-struct cannonical_position{
-#if 1
-	int32 TileMapX;
-	int32 TileMapY;
+struct tile_chunk_position{
 
-	int32 TileX;
-	int32 TileY;
-#else
-	uint32 _TileX;
-	uint32 _TileY;
-#endif
+	uint32 TileChunkX;
+	uint32 TileChunkY;
+
+	uint32 RelTileX;
+	uint32 RelTileY;
+
+};
+
+struct world_position{
+	uint32 AbsTileX;
+	uint32 AbsTileY;
+
 #if 0
 	real32 X;
 	real32 Y;
@@ -225,31 +228,26 @@ struct cannonical_position{
 
 
 
-struct tile_map{
+struct tile_chunk{
 	uint32 * Tiles;
 };
 
 struct world{
 
+
+	uint32 ChunkShift;
+	uint32 ChunkMask;
+	uint32 ChunkDim;
+
 	real32 TileSideInMeters; 
 	int32 TileSideInPixels;
 	real32 MetersToPixels;
-	int32 CountX;
-	int32 CountY;
 
-	real32 UpperLeftX;
-	real32 UpperLeftY;
-
-/*	So, these can be removed as we are now not using pixels as our unit
-
-	real32 TileWidth;
-	real32 TileHeight;*/
-
-	int32 TileMapCountX;
-	int32 TileMapCountY;
+	int32 TileChunkCountX;
+	int32 TileChunkCountY;
 
 
-	tile_map * TileMaps;
+	tile_chunk * TileChunks;
 
 };
 
@@ -267,5 +265,5 @@ struct game_state{
 	real32 PlayerY;
 #endif
 
-	cannonical_position PlayerP;
+	world_position PlayerP;
 };
