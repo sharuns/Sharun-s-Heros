@@ -38,6 +38,8 @@ typedef int32_t bool32;
 typedef int32_t int32;
 typedef int64_t int64;
 
+typedef size_t memory_index;
+
 
 typedef  float real32;
 typedef  double real64; //IEEE 754 spec, for representation of a float in binary
@@ -204,66 +206,28 @@ GAME_GET_SOUND_SAMPLES(GameGetSoundSamplesStub){
 
 //Service that the platform layer provides the game
 
-struct tile_chunk_position{
-
-	uint32 TileChunkX;
-	uint32 TileChunkY;
-
-	uint32 RelTileX;
-	uint32 RelTileY;
-
-};
-
-struct world_position{
-	uint32 AbsTileX;
-	uint32 AbsTileY;
-
-#if 0
-	real32 X;
-	real32 Y;
-#endif
-	real32 TileRelX;
-	real32 TileRelY;
-};
 
 
 
-struct tile_chunk{
-	uint32 * Tiles;
+
+#include "SharunMade_Intrinsics.h"
+#include "SharunMadeTile.h"
+
+
+struct memory_arena{
+	memory_index Size;
+	uint8 * Base;
+	memory_index Used;
+
 };
 
 struct world{
-
-
-	uint32 ChunkShift;
-	uint32 ChunkMask;
-	uint32 ChunkDim;
-
-	real32 TileSideInMeters; 
-	int32 TileSideInPixels;
-	real32 MetersToPixels;
-
-	int32 TileChunkCountX;
-	int32 TileChunkCountY;
-
-
-	tile_chunk * TileChunks;
-
+	tile_map *TileMap;
 };
-
-
-
-
 
 struct game_state{
 
-#if 0
-	int32 PlayerTileMapX;
-	int32 PlayerTileMapY;
-
-	real32 PlayerX;
-	real32 PlayerY;
-#endif
-
-	world_position PlayerP;
+	memory_arena WorldArena;
+	world * World;
+	tile_map_position PlayerP;
 };

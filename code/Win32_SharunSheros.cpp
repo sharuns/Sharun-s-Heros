@@ -1022,7 +1022,7 @@ extern "C"{
 #endif
 				game_memory GameMemory = {};
 				GameMemory.PermanentStorageSize = Megabytes(64);
-				GameMemory.TransientStorageSize = Gigabytes((uint64)1); //Try making this as 1 
+				GameMemory.TransientStorageSize = Gigabytes((uint64)2); //Try making this as 1 
 				GameMemory.DEBUGPlatformReadEntireFile = DEBUGPlatformReadEntireFile;
 				GameMemory.DEBUGPlatformWriteEntireFile = DEBUGPlatformWriteEntireFile;
 				GameMemory.DEBUGPlatformFreeFileMemory = DEBUGPlatformFreeFileMemory;

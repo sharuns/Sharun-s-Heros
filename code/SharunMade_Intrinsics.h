@@ -17,7 +17,7 @@ RoundReal32ToInt32(real32 Real32) {
 		0.25f + 0.5f = 0.75f => on truncating becomes 0
 		This operation mimics Rounding using tuncation
 	*/
-	int32 Result = (int32)(Real32 + RoundingFraction);
+	int32 Result = (int32)roundf(Real32);
 	return (Result);
 
 }
@@ -36,7 +36,7 @@ RoundReal32ToUint32(real32 Real32) {
 		0.25f + 0.5f = 0.75f => on truncating becomes 0
 		This operation mimics Rounding using tuncation
 	*/
-	uint32 Result = (uint32)(Real32 + RoundingFraction);
+	uint32 Result = (uint32)roundf(Real32);
 	return (Result);
 
 }
