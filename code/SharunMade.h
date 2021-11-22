@@ -221,6 +221,23 @@ struct memory_arena{
 
 };
 
+//Primitive memory allocator for now, which pushed our tiles from previously stored in stack to the 
+//dedicated allocated game memory 
+
+#define PushStruct(Arena,type) (type * )PushSize_(Arena, sizeof(type))
+#define PushArray(Arena,Count,type) (type*)PushSize_(Arena, (Count)*sizeof(type))
+
+void*
+PushSize_(memory_arena * Arena, memory_index Size){
+
+	Assert((Arena->Used + Size) <= Arena->Size);
+	void * Result = Arena->Base + Arena->Used;
+	Arena->Used +=Size;
+
+	return(Result);
+
+}
+
 struct world{
 	tile_map *TileMap;
 };
