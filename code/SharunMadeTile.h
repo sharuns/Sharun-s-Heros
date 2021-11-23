@@ -1,21 +1,22 @@
 #pragma once
-
+/*
+Date : 20th Nov 2021
+Author : Sharun S
+Place : Chennai , India 
+*/
 
 struct tile_map_position{
 
 
-	//sharun : These are fixed point tile location.
-	//High bits are the tile chunk index, Low bits are tile index in the chunk
+	// NOTE : sharun : These are fixed point tile location.
+	// High bits are the tile chunk index, Low bits
+	// are tile index in the chunk
 	uint32 AbsTileX;
 	uint32 AbsTileY;
 	uint32 AbsTileZ;
 
-#if 0
-	real32 X;
-	real32 Y;
-#endif
-	real32 TileRelX;
-	real32 TileRelY;
+	real32 OffsetX;
+	real32 OffsetY;
 };
 
 

@@ -81,13 +81,11 @@ struct debug_read_file_result{
 };
 
 
-#define DEBUG_PLATFORM_READ_ENTIRE_FILE(name) debug_read_file_result name(thread_context *Thread,char * Filename)
-typedef DEBUG_PLATFORM_READ_ENTIRE_FILE(debug_platform_read_entire_file);
- 
 #define DEBUG_PLATFORM_FREE_FILE_MEMORY(name) void name(thread_context *Thread,void * Memory)
 typedef DEBUG_PLATFORM_FREE_FILE_MEMORY(debug_platform_free_file_memory);
 
-//void * DEBUGPlatformReadfromFreeMemory(void * Memory);
+#define DEBUG_PLATFORM_READ_ENTIRE_FILE(name) debug_read_file_result name(thread_context *Thread,char * Filename)
+typedef DEBUG_PLATFORM_READ_ENTIRE_FILE(debug_platform_read_entire_file);
 
 #define DEBUG_PLATFORM_WRITE_ENTIRE_FILE(name) bool32 name(thread_context *Thread,char * Filename, uint32 MemorySize, void * Memory)
 typedef DEBUG_PLATFORM_WRITE_ENTIRE_FILE(debug_platform_write_entire_file);
@@ -180,9 +178,10 @@ struct game_memory{
 	uint64 TransientStorageSize;
 	void * TransientStorage;
 
+	debug_platform_free_file_memory * DEBUGPlatformFreeFileMemory;   
 	debug_platform_read_entire_file * DEBUGPlatformReadEntireFile;
 	debug_platform_write_entire_file *  DEBUGPlatformWriteEntireFile;
-	debug_platform_free_file_memory * DEBUGPlatformFreeFileMemory;   
+	
 	//pass pointers to the debug services
 
 
@@ -247,4 +246,5 @@ struct game_state{
 	memory_arena WorldArena;
 	world * World;
 	tile_map_position PlayerP;
+	uint32 * PixelPointer;
 };

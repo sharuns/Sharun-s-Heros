@@ -90,6 +90,43 @@ DrawRectangle(game_offscreen_buffer* Buffer,
 }
 
 
+//pragma pack push tells the compiler to pack the ele in struct as per there size without padding
+//and on pop we return to whatever the packing scheme was present earlier
+#pragma pack(push, 1)
+struct bitmap_header{
+
+	uint16 FileType;
+	uint32 FileSize;
+	uint16 Reserved1;
+	uint16 Reserved2;
+	uint32 BitmapOffset;
+	uint32 Size;
+	int32 Width;
+	int32 Height;
+	uint16 Planes;
+	uint16 BitsPerPixel;
+
+
+};
+#pragma pack(pop)
+
+
+internal uint32 *
+DEBUGLoadBMP(thread_context * Thread, debug_platform_read_entire_file * ReadEntireFile,char *FileName){
+
+	uint32 * Result = 0;
+
+	debug_read_file_result ReadResult = ReadEntireFile(Thread,FileName);
+	if(ReadResult.ContentSize != 0 ){
+
+		bitmap_header * Header = (bitmap_header*)ReadResult.Contents;
+		uint32 * Pixels = (uint32 *)(uint8 *)ReadResult.Contents + Header->BitmapOffset;
+		Result = Pixels;
+	}
+	return (Result);
+}
+
+
 
 internal void
 InitailizeArena(memory_arena * Arena,memory_index Size,uint8 * Base){
@@ -114,11 +151,11 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 
 	if(!Memory->IsInitialized){
 
-
+		GameState->PixelPointer = DEBUGLoadBMP(Thread ,Memory->DEBUGPlatformReadEntireFile, "data/test/test_background.bmp");
 		GameState->PlayerP.AbsTileX = 1;
 		GameState->PlayerP.AbsTileY = 3;
-		GameState->PlayerP.TileRelX = 5.0f;
-		GameState->PlayerP.TileRelY = 5.0f;
+		GameState->PlayerP.OffsetX = 5.0f;
+		GameState->PlayerP.OffsetY = 5.0f;
 		
 		InitailizeArena(&GameState->WorldArena, Memory->PermanentStorageSize - sizeof(game_state),
 						(uint8 * )Memory->PermanentStorage + sizeof(game_state));
@@ -176,7 +213,10 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 		else{
 			RandomChoice = RandomNumberTable[RandomNumberIndex++]%3;
 		}
+
+		bool32 CreatedZDoor = false;
 		if(RandomChoice == 2){
+			CreatedZDoor = true;
 			if(AbsTileZ == 0 ){
 					DoorUp = true;
 				}else{
@@ -242,15 +282,17 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 		DoorLeft = DoorRight;
 		DoorBottom = DoorTop;
 		
-		if(DoorUp){
-			DoorDown = true;
-			DoorUp= false;
-		}else if(DoorDown){
-			DoorDown = false;
-			DoorUp= true;
+		if(CreatedZDoor){
+
+			DoorDown = !DoorDown;
+			DoorUp = !DoorUp;
+
+
 		}else{
-			DoorUp = false;
+
 			DoorDown = false;
+			DoorUp = false;
+
 		}
 
 		DoorRight = false;
@@ -337,16 +379,16 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 			dPlayerY *= PlayerSpeed; //10 m/s speed for motion 
 
 			tile_map_position NewPlayerP = GameState->PlayerP;
-			NewPlayerP.TileRelX += Input->dtForFrame*dPlayerX;
-			NewPlayerP.TileRelY += Input->dtForFrame*dPlayerY;
+			NewPlayerP.OffsetX += Input->dtForFrame*dPlayerX;
+			NewPlayerP.OffsetY += Input->dtForFrame*dPlayerY;
 			NewPlayerP = ReCannonicalizePosition(TileMap,NewPlayerP);
 
 			tile_map_position PlayerLeft = NewPlayerP;
-			PlayerLeft.TileRelX -= 0.5f*PlayerWidth;
+			PlayerLeft.OffsetX -= 0.5f*PlayerWidth;
 			PlayerLeft = ReCannonicalizePosition(TileMap,PlayerLeft);
 
 			tile_map_position PlayerRight = NewPlayerP;
-			PlayerRight.TileRelX += 0.5f*PlayerWidth;
+			PlayerRight.OffsetX += 0.5f*PlayerWidth;
 			PlayerRight = ReCannonicalizePosition(TileMap,PlayerRight);
 
 			/*Detecting boundary of a tileMap
@@ -368,7 +410,16 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 			   IsTileMapPointEmpty(TileMap,PlayerLeft) && 
 			   IsTileMapPointEmpty(TileMap,PlayerRight))
 			{
+				if(!AreOnSameTile(&GameState->PlayerP,&NewPlayerP)){
 
+					uint32 NewTileValue =  GetTileValue(TileMap,NewPlayerP);
+					if(NewTileValue == 3){
+						++NewPlayerP.AbsTileZ;
+
+					}else if(NewTileValue == 4){
+						--NewPlayerP.AbsTileZ;
+					}	
+				}
 				GameState->PlayerP = NewPlayerP;
 			}
 		}
@@ -415,8 +466,8 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 
 			
 			//smooth scrolling effect
-				real32 CenX = ScreenCenterX - MetersToPixels*GameState->PlayerP.TileRelX + ((real32)RelColumn)*TileSideInPixels;
-				real32 CenY = ScreenCenterY + MetersToPixels*GameState->PlayerP.TileRelY - ((real32)RelRow)*TileSideInPixels;
+				real32 CenX = ScreenCenterX - MetersToPixels*GameState->PlayerP.OffsetX + ((real32)RelColumn)*TileSideInPixels;
+				real32 CenY = ScreenCenterY + MetersToPixels*GameState->PlayerP.OffsetY - ((real32)RelRow)*TileSideInPixels;
 				real32 MinX = CenX - 0.5f*TileSideInPixels;
 				real32 MinY = CenY - 0.5f*TileSideInPixels;
 				real32 MaxX = CenX + 0.5f*TileSideInPixels;
@@ -439,8 +490,8 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 	real32 PlayerG = 1.0f;
 	real32 PlayerB = 0.0f;
 
-	//real32 PlayerLeft = CenterX + TileMap->MetersToPixels*GameState->PlayerP.TileRelX - (0.5f *TileMap->MetersToPixels*PlayerWidth);
-	//real32 PlayerTop = CenterY - TileMap->MetersToPixels*GameState->PlayerP.TileRelY -  (TileMap->MetersToPixels*PlayerHeight);
+	//real32 PlayerLeft = CenterX + TileMap->MetersToPixels*GameState->PlayerP.OffsetX - (0.5f *TileMap->MetersToPixels*PlayerWidth);
+	//real32 PlayerTop = CenterY - TileMap->MetersToPixels*GameState->PlayerP.OffsetY -  (TileMap->MetersToPixels*PlayerHeight);
 	//smooth scrolling effect
 	real32 PlayerLeft = ScreenCenterX - (0.5f *MetersToPixels*PlayerWidth);
 	real32 PlayerTop = ScreenCenterY  -  (MetersToPixels*PlayerHeight);
@@ -450,6 +501,21 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 				  PlayerLeft + MetersToPixels*PlayerWidth,
 				  PlayerTop + MetersToPixels*PlayerHeight,PlayerR,PlayerG,PlayerB);
 
+#if 0
+	uint32 * Source  = GameState->PixelPointer;
+	uint32 * Dest = (uint32 *)Buffer->Memory;
+	for(int32 Y = 0 ;
+		Y < Buffer->Height;
+		++Y){
+
+		for(int32 X = 0 ; 
+			X < Buffer->Width;
+			++X){
+
+			*Dest++ =  *Source++;
+		}
+	}
+#endif
 }
 
 extern "C" GAME_GET_SOUND_SAMPLES(GameGetSoundSamples)
