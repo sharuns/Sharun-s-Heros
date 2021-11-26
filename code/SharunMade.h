@@ -17,7 +17,28 @@ Place : Chennai , India
 //Defined in the build.bat file
 //As assert is performance effecting so we use it only when we define the macro 
 
-#include <math.h>
+#if !defined(COMPILER_MSVC)
+#define COMPILER_MSVC 0
+#endif
+
+#if !defined(COMPILER_LLVM)
+#define COMPILER_LLVM 0
+#endif
+
+#if !COMPILER_MSVC && !COMPILER_LLVM
+#if _MSC_VER
+#undef COMPILER_MSVC
+#define COMPILER_MSVC 1
+#else
+#undef COMPILER_LLVM
+#define COMPILER_LLVM 1
+#endif
+#endif
+
+#if COMPILER_MSVC
+#include<intrin.h>
+#endif
+
 #include <stdint.h>
 
 //for better readability purposes
