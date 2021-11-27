@@ -13,6 +13,8 @@ REM cl %CommonCompilerFlags%  ../code/Win32_SharunSheros.cpp /link -subsystem:wi
 REM 64-bit build
 
 del *.pdb > NUL 2> NUL
+echo WAITING FOR PDB > lock.tmp
 cl %CommonCompilerFlags%  ..\code\SharunMade.cpp -FmSharunMade.map -LD /link -incremental:no -opt:ref /PDB:SharunMade_%random%.pdb  /EXPORT:GameGetSoundSamples /EXPORT:GameUpdateAndRenderer 
+del lock.tmp
 cl %CommonCompilerFlags%  ..\code\Win32_SharunSheros.cpp -Fmwin32_SharunSheros.map /link %CommonLinkerFlags%
 popd

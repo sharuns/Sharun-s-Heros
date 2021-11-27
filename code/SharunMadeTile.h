@@ -5,6 +5,14 @@ Author : Sharun S
 Place : Chennai , India 
 */
 
+struct tile_map_difference{
+
+	real32 dx;
+	real32 dy;
+	real32 dz;
+
+};
+
 struct tile_map_position{
 
 
