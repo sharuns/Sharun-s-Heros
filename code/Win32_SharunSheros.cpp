@@ -24,6 +24,7 @@ global_variable bool Global_Running; //temporary way to close the window
 global_variable Win32_offscreen_buffer Global_BackBuffer;
 global_variable LPDIRECTSOUNDBUFFER GlobalSecondaryBuffer;
 global_variable int64 GlobalPerfCountFrequency;
+global_variable bool32 DEBUGGlobalShowCursor;
 
 //Trying to link to library using function pointer ourselves rather than hardcoding at compile time
 //Get the function declarations from header files
@@ -512,16 +513,25 @@ internal void
 Win32DisplayWindow(HDC DeviceContext,int WindowWidth,int WindowHeight,
 					Win32_offscreen_buffer Buffer,
 				  	int X,int Y, int Width, int Height){
-//Dirty rectangle update	
-	//For Debug purposes we can try disable the resizing of window
-	/*
-	StretchDIBits(DeviceContext,
-		0, 0, Buffer.Width, Buffer.Height,
+
+
+	if((WindowWidth >= Buffer.Width*2)&&
+		(WindowHeight >= Buffer.Height*2)){
+
+		StretchDIBits(DeviceContext,
+		0, 0, 2*Buffer.Width, 2*Buffer.Height,
 		0, 0, Buffer.Width, Buffer.Height,
 		Buffer.BitmapMemory,
 		& Buffer.BitmapInfo,
 		DIB_RGB_COLORS,
 		SRCCOPY);
+
+
+	}else{
+//Dirty rectangle update	
+	//For Debug purposes we can try disable the resizing of window
+	/*
+	
 		*/
 	//We can convert the rest of the area of the scree to black in case we use the Actual res.D29
 	
@@ -532,7 +542,7 @@ Win32DisplayWindow(HDC DeviceContext,int WindowWidth,int WindowHeight,
 				&Buffer.BitmapInfo,
 				DIB_RGB_COLORS,
 				SRCCOPY);
-				
+		}		
 }
 
 
@@ -552,6 +562,15 @@ LRESULT CALLBACK MainWindowCallback(
 		case WM_SIZE:
 		{
 			OutputDebugStringA("WM_SIZE\n");
+		}
+		break;
+		case WM_SETCURSOR:
+		{	
+			if(DEBUGGlobalShowCursor){
+				Result = DefWindowProcA(Window,Message,WParam,LParam);
+			}else{
+				SetCursor(0);
+			}OutputDebugStringA("WM_SETCURSOR\n");
 		}
 		break;
 		case WM_DESTROY:
@@ -957,6 +976,9 @@ extern "C"{
 
 		//Better Practice , when need to intialize an entire struct to 0
 		Win32LoadXInput();
+#if SHARUN_INTERNAL
+		DEBUGGlobalShowCursor = true;
+#endif
 		WNDCLASS windowClass = {0}; //initializer;
 
 		//Game Resolution
@@ -964,7 +986,8 @@ extern "C"{
 
 		windowClass.style = CS_HREDRAW | CS_VREDRAW;//These flags tell that it needs to re-paint the entire window
 		windowClass.lpfnWndProc = MainWindowCallback; //registering callback method
-		windowClass.hInstance = Instance; 
+		windowClass.hInstance = Instance;
+		windowClass.hCursor = LoadCursor(0,IDC_ARROW);
 		windowClass.lpszClassName = "SharunSHeroWindowsClass";
 
 
