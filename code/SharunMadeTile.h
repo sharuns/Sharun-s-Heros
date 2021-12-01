@@ -7,8 +7,7 @@ Place : Chennai , India
 
 struct tile_map_difference{
 
-	real32 dx;
-	real32 dy;
+	V2 dXY;
 	real32 dz;
 
 };
@@ -23,8 +22,7 @@ struct tile_map_position{
 	uint32 AbsTileY;
 	uint32 AbsTileZ;
 
-	real32 OffsetX;
-	real32 OffsetY;
+	V2 Offset;
 };
 
 

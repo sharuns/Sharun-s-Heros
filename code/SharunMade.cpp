@@ -39,17 +39,17 @@ void GameOutputSound(game_state* GameState, game_sound_output_buffer * SoundBuff
 
 internal void 
 DrawRectangle(game_offscreen_buffer* Buffer,
-	real32 RealMinX, real32 RealMinY, real32 RealMaxX, real32 RealMaxY ,
+	V2 vMin, V2 vMax,
 	real32 R, real32 G, real32 B) {
 
 	//Rounding NOT truncating
 	/*
 		0.75 : Rounded value : 1, Truckated Value : 0
 	*/
-	int32 MinX = RoundReal32ToInt32(RealMinX);
-	int32 MinY = RoundReal32ToInt32(RealMinY);
-	int32 MaxX = RoundReal32ToInt32(RealMaxX);
-	int32 MaxY = RoundReal32ToInt32(RealMaxY);
+	int32 MinX = RoundReal32ToInt32(vMin.X);
+	int32 MinY = RoundReal32ToInt32(vMin.Y);
+	int32 MaxX = RoundReal32ToInt32(vMax.X);
+	int32 MaxY = RoundReal32ToInt32(vMax.Y);
 
 
 	//Clipping the rectangle so that we are drawing in the valid buffer section
@@ -311,8 +311,8 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 
 		GameState->PlayerP.AbsTileX = 1;
 		GameState->PlayerP.AbsTileY = 3;
-		GameState->PlayerP.OffsetX = 5.0f;
-		GameState->PlayerP.OffsetY = 5.0f;
+		GameState->PlayerP.Offset.X = 5.0f;
+		GameState->PlayerP.Offset.Y = 5.0f;
 		
 		InitailizeArena(&GameState->WorldArena, Memory->PermanentStorageSize - sizeof(game_state),
 						(uint8 * )Memory->PermanentStorage + sizeof(game_state));
@@ -507,48 +507,53 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 		}*/
 				//digital controller = Keys
 
-			real32 dPlayerX = 0.0f;
-			real32 dPlayerY = 0.0f;
+			V2 dPlayer = {};
 
 
 			if(Controller->MoveUp.EndedDown){
 
 				GameState->HeroFacingDirection = 1;
-				dPlayerY = 1.0f;
+				dPlayer.Y = 1.0f;
 			}
 			if(Controller->MoveDown.EndedDown){
 			
 			GameState->HeroFacingDirection = 3;
-				dPlayerY = -1.0f;
+				dPlayer.Y = -1.0f;
 
 			}
 			if(Controller->MoveLeft.EndedDown){
 				GameState->HeroFacingDirection = 2;
-				dPlayerX = -1.0f;
+				dPlayer.X = -1.0f;
 			}
 			if(Controller->MoveRight.EndedDown){
 				GameState->HeroFacingDirection = 0;
-				dPlayerX = 1.0f;
+				dPlayer.X = 1.0f;
 			}
 			real32 PlayerSpeed = 1.0f;
 			if(Controller->ActionUp.EndedDown){
 				PlayerSpeed = 3.0f;
 			}
 
-			dPlayerX *= PlayerSpeed;
-			dPlayerY *= PlayerSpeed; //10 m/s speed for motion 
+			dPlayer *= PlayerSpeed;
+			
+
+			if((dPlayer.X != 0.0f) && (dPlayer.Y !=0.0f)){
+
+				dPlayer  *= 0.707106781187f;
+			}
+
 
 			tile_map_position NewPlayerP = GameState->PlayerP;
-			NewPlayerP.OffsetX += Input->dtForFrame*dPlayerX;
-			NewPlayerP.OffsetY += Input->dtForFrame*dPlayerY;
+			NewPlayerP.Offset.X += Input->dtForFrame*dPlayer.X;
+			NewPlayerP.Offset.Y += Input->dtForFrame*dPlayer.Y;
 			NewPlayerP = ReCannonicalizePosition(TileMap,NewPlayerP);
 
 			tile_map_position PlayerLeft = NewPlayerP;
-			PlayerLeft.OffsetX -= 0.5f*PlayerWidth;
+			PlayerLeft.Offset.X -= 0.5f*PlayerWidth;
 			PlayerLeft = ReCannonicalizePosition(TileMap,PlayerLeft);
 
 			tile_map_position PlayerRight = NewPlayerP;
-			PlayerRight.OffsetX += 0.5f*PlayerWidth;
+			PlayerRight.Offset.X += 0.5f*PlayerWidth;
 			PlayerRight = ReCannonicalizePosition(TileMap,PlayerRight);
 
 			/*Detecting boundary of a tileMap
@@ -586,16 +591,16 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 			GameState->CameraP.AbsTileZ = GameState->PlayerP.AbsTileZ;
 
 			tile_map_difference Diff = Subtract(TileMap,&GameState->PlayerP,&GameState->CameraP);
-			if(Diff.dx >(9.0f*TileMap->TileSideInMeters)){
+			if(Diff.dXY.X >(9.0f*TileMap->TileSideInMeters)){
 				GameState->CameraP.AbsTileX += 17;
 			}
-			if(Diff.dx < -(9.0f*TileMap->TileSideInMeters)){
+			if(Diff.dXY.X < -(9.0f*TileMap->TileSideInMeters)){
 				GameState->CameraP.AbsTileX -= 17;
 			}
-			if(Diff.dy >(5.0f*TileMap->TileSideInMeters)){
+			if(Diff.dXY.Y >(5.0f*TileMap->TileSideInMeters)){
 				GameState->CameraP.AbsTileY += 9;
 			}
-			if(Diff.dy < -(5.0f*TileMap->TileSideInMeters)){
+			if(Diff.dXY.Y < -(5.0f*TileMap->TileSideInMeters)){
 				GameState->CameraP.AbsTileY -= 9;
 			}
 		}
@@ -642,18 +647,16 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 
 			
 			//smooth scrolling effect
-				real32 CenX = ScreenCenterX - MetersToPixels*GameState->CameraP.OffsetX + ((real32)RelColumn)*TileSideInPixels;
-				real32 CenY = ScreenCenterY + MetersToPixels*GameState->CameraP.OffsetY - ((real32)RelRow)*TileSideInPixels;
-				real32 MinX = CenX - 0.5f*TileSideInPixels;
-				real32 MinY = CenY - 0.5f*TileSideInPixels;
-				real32 MaxX = CenX + 0.5f*TileSideInPixels;
-				real32 MaxY = CenY + 0.5f*TileSideInPixels;
-
+				V2 TileSide = {0.5f*TileSideInPixels, 0.5f*TileSideInPixels};
+				V2 Cen = { ScreenCenterX - MetersToPixels*GameState->CameraP.Offset.X + ((real32)RelColumn)*TileSideInPixels,
+						   ScreenCenterY + MetersToPixels*GameState->CameraP.Offset.Y - ((real32)RelRow)*TileSideInPixels};
+				V2 Min = Cen - TileSide;
+				V2 Max = Cen + TileSide;
 				//real32 MinX = CenterX + ((real32)RelColumn)*TileMap->TileSideInPixels;
 				//real32 MinY = CenterY - ((real32)RelRow)*TileMap->TileSideInPixels;
 
 
-				DrawRectangle(Buffer,MinX,MinY,MaxX,MaxY,Gray,Gray,Gray);
+				DrawRectangle(Buffer,Min,Max,Gray,Gray,Gray);
 			}	
 		}
 
@@ -671,8 +674,8 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 	//real32 PlayerLeft = CenterX + TileMap->MetersToPixels*GameState->PlayerP.OffsetX - (0.5f *TileMap->MetersToPixels*PlayerWidth);
 	//real32 PlayerTop = CenterY - TileMap->MetersToPixels*GameState->PlayerP.OffsetY -  (TileMap->MetersToPixels*PlayerHeight);
 	//smooth scrolling effect
-	real32 PlayerGroundPointX = ScreenCenterX + MetersToPixels*Diff.dx;
-	real32 PlayerGroundPointY = ScreenCenterY - MetersToPixels*Diff.dy;
+	real32 PlayerGroundPointX = ScreenCenterX + MetersToPixels*Diff.dXY.X;
+	real32 PlayerGroundPointY = ScreenCenterY - MetersToPixels*Diff.dXY.Y;
 	real32 PlayerLeft = PlayerGroundPointX - (0.5f *MetersToPixels*PlayerWidth);
 	real32 PlayerTop = PlayerGroundPointY  -  (MetersToPixels*PlayerHeight);
 

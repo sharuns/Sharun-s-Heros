@@ -41,6 +41,7 @@ Place : Chennai , India
 
 #include <stdint.h>
 
+
 //for better readability purposes
 #define internal static
 #define local_persist static
@@ -231,6 +232,7 @@ GAME_GET_SOUND_SAMPLES(GameGetSoundSamplesStub){
 
 
 #include "SharunMade_Intrinsics.h"
+#include "SharunMade_Math.h"
 #include "SharunMadeTile.h"
 
 
