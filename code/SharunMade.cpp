@@ -582,9 +582,48 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 				to obstacles
 
 			*/
-			if(IsTileMapPointEmpty(TileMap,NewPlayerP)&&
-			   IsTileMapPointEmpty(TileMap,PlayerLeft) && 
-			   IsTileMapPointEmpty(TileMap,PlayerRight))
+
+			bool32 Collided = false;
+			tile_map_position ColP= {};
+
+			if(!IsTileMapPointEmpty(TileMap,NewPlayerP)){
+
+				ColP = NewPlayerP;
+				Collided = true;
+
+			}
+			 if(!IsTileMapPointEmpty(TileMap,PlayerLeft)){
+
+			 	ColP = PlayerLeft;
+			 	Collided = true;
+			 } 
+			 if(!IsTileMapPointEmpty(TileMap,PlayerRight)){
+
+			 	ColP = PlayerRight;
+			 	Collided = true;
+			 }
+
+			 if(Collided){
+
+			 	V2 r = {0,0};
+			 	if(ColP.AbsTileX < GameState->PlayerP.AbsTileX){
+
+			 			r = V2{1,0};
+			 	}
+				if(ColP.AbsTileX > GameState->PlayerP.AbsTileX){
+			 			r = V2{-1,0};	
+			 	}
+			 	if(ColP.AbsTileY < GameState->PlayerP.AbsTileY){
+			 			r = V2{0,1};
+			 	}
+			 	if(ColP.AbsTileY > GameState->PlayerP.AbsTileY){
+			 			r = V2{0,-1};
+			 	}
+				//Bounce of the y axis , reduce this to along the wall by multiplying by 1
+				GameState->dPlayerP = GameState->dPlayerP - 1*Inner(GameState->dPlayerP,r)*r;
+
+			 }
+			else
 			{
 				if(!AreOnSameTile(&GameState->PlayerP,&NewPlayerP)){
 
@@ -598,6 +637,7 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 				}
 				GameState->PlayerP = NewPlayerP;
 			}
+			
 
 			GameState->CameraP.AbsTileZ = GameState->PlayerP.AbsTileZ;
 

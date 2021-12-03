@@ -91,3 +91,9 @@ Square(real32 A){
 	return Result;
 
 }
+inline real32
+Inner(V2 A,V2 B){
+
+	real32 Result = A.X*B.X + A.Y*B.Y;
+	return Result;
+}
