@@ -8,6 +8,14 @@ Place : Chennai , India
 #include"math.h"
 #define RoundingFraction 0.5f
 
+
+inline real32
+AbsoluteValue(real32 Real32){
+
+	real32 Result = fabs(Real32);
+	return (Result);
+}
+
 //===============================================================
 //!
 //! note : Method to Round a floating point number to integer

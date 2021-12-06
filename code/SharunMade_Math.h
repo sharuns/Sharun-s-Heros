@@ -97,3 +97,12 @@ Inner(V2 A,V2 B){
 	real32 Result = A.X*B.X + A.Y*B.Y;
 	return Result;
 }
+
+
+inline real32
+LengthSq(V2 A){
+
+	real32 Result = Inner(A,A);
+	return Result;
+
+}

@@ -816,10 +816,11 @@ while(PeekMessage(&Message,0,0,0,PM_REMOVE)){
 				}
 				else if (VKCode == VK_ESCAPE)
 				{
-					Global_Running = false;
+					Win32ProcessKeyboardMessage(&KeyboardController->Back, IsDown);
 				}
 				else if (VKCode == VK_SPACE)
 				{
+					Win32ProcessKeyboardMessage(&KeyboardController->Start, IsDown);
 				}
 #if SHARUN_INTERNAL
 				else if (VKCode == 'L') {
