@@ -14,7 +14,6 @@ struct tile_map_difference{
 
 struct tile_map_position{
 
-
 	// NOTE : sharun : These are fixed point tile location.
 	// High bits are the tile chunk index, Low bits
 	// are tile index in the chunk
@@ -22,7 +21,7 @@ struct tile_map_position{
 	uint32 AbsTileY;
 	uint32 AbsTileZ;
 
-	V2 Offset;
+	V2 Offset_;
 };
 
 

@@ -9,6 +9,24 @@ Place : Chennai , India
 #define RoundingFraction 0.5f
 
 
+
+
+inline real32
+SignOf(int32 Value) {
+
+	real32 Result = (Value >= 0) ? 1 : -1;
+	return (Result);
+
+}
+
+
+inline real32
+SquareRoot(real32 Real32){
+
+	real32 Result = sqrtf(Real32);
+	return (Result);
+}
+
 inline real32
 AbsoluteValue(real32 Real32){
 
@@ -58,6 +76,12 @@ RoundReal32ToUint32(real32 Real32) {
 internal int32
 FloorReal32ToInt32(real32 Real32) {
 	int32 Result = (int32)floorf(Real32);
+	return (Result);
+}
+
+internal int32
+CeilReal32ToInt32(real32 Real32) {
+	int32 Result = (int32)ceilf(Real32);
 	return (Result);
 }
 

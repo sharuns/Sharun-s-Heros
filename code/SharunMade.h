@@ -236,12 +236,24 @@ GAME_GET_SOUND_SAMPLES(GameGetSoundSamplesStub){
 #include "SharunMadeTile.h"
 
 
+#define Minimum(A,B) ((A < B) ? (A) : (B))
+#define Maximum(A,B) ((A > B) ? (A) : (B))
+
+
 struct memory_arena{
 	memory_index Size;
 	uint8 * Base;
 	memory_index Used;
 
 };
+
+internal void
+InitailizeArena(memory_arena * Arena,memory_index Size,uint8 * Base){
+
+	Arena->Size = Size;
+	Arena->Base = Base;
+	Arena->Used = 0 ;
+}
 
 //Primitive memory allocator for now, which pushed our tiles from previously stored in stack to the 
 //dedicated allocated game memory 
@@ -280,16 +292,44 @@ struct hero_bitmaps{
 	loaded_bitmap Torso;
 };
 
+/*
+Any entity present in the game will use this DS
+High enitity is one which is being rendered into 
+the activbve screen
+*/
+struct high_entity{
 
-struct entity{
-
-	bool32 Exists;
-	tile_map_position P;
 	uint32 FacingDirection;
 	V2 dP;
-	real32 Width,Height;
+	V2 P; // float position
+	uint32 AbsTileZ;
+};
 
+struct low_entity {
 
+};
+
+struct dormant_entity {
+
+	tile_map_position P;
+	real32 Width, Height;
+	int32 dAbsTileZ;
+	bool32 Collides;
+};
+
+//To show in which state an entity is 
+enum entity_residence {
+	EntityResidence_Nonexistant,
+	EntityResidence_Dormant,
+	EntityResidence_Low,
+	EntityResidence_High
+};
+
+struct entity {
+	uint32 Residence;
+	low_entity* Low;
+	dormant_entity * Dormant;
+	high_entity * High;
 };
 
 struct game_state{
@@ -302,10 +342,11 @@ struct game_state{
 
 	uint32 PlayerIndexForController[ArrayCount(((game_input *)0)->Controllers)];
 	uint32 EntityCount;
-	entity Entities[256];
+	entity_residence EntityResidence[256];
+	high_entity HighEntities[256];
+	low_entity LowEntities[256];
+	dormant_entity DormantEntities[256];
 
 	loaded_bitmap Backdrop;
 	hero_bitmaps HeroBitmaps[4];
-	
-	
 };

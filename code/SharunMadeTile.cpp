@@ -181,26 +181,25 @@ inline void
 ReCannonicalizeCoord(tile_map * TileMap, uint32 * Tile,real32 * TileRel){
 
 	int32 Offset = RoundReal32ToInt32(*TileRel / TileMap->TileSideInMeters);	
-
-	*Tile += Offset; 
+	*Tile += Offset;
 	*TileRel -= Offset*TileMap->TileSideInMeters;
 
-
 	//Need to check this Assert hit case
-	Assert(*TileRel >= -0.5f*TileMap->TileSideInMeters);	
-	Assert(*TileRel <= 0.5f*TileMap->TileSideInMeters);
+	Assert(*TileRel > -0.5001f*TileMap->TileSideInMeters);	
+	Assert(*TileRel < 0.5001f*TileMap->TileSideInMeters);
 	
 }
 
 
 
 inline tile_map_position 
-ReCannonicalizePosition(tile_map * TileMap,tile_map_position Pos){
+MapIntoTileSpace(tile_map * TileMap,tile_map_position BasePos, V2 Offset){
 	
-	tile_map_position Result = Pos;
+	tile_map_position Result = BasePos;
 
-	ReCannonicalizeCoord(TileMap,&Result.AbsTileX, &Result.Offset.X);
-	ReCannonicalizeCoord(TileMap,&Result.AbsTileY, &Result.Offset.Y);
+	Result.Offset_ += Offset;
+	ReCannonicalizeCoord(TileMap,&Result.AbsTileX, &Result.Offset_.X);
+	ReCannonicalizeCoord(TileMap,&Result.AbsTileY, &Result.Offset_.Y);
 
 	return (Result);
 }
@@ -225,7 +224,7 @@ Subtract(tile_map *TileMap,tile_map_position * A,tile_map_position *B){
 
 	real32 dTileZ = (real32)A->AbsTileZ -(real32)B->AbsTileZ;
 
-	Result.dXY  = TileMap->TileSideInMeters*dTile + (A->Offset- B->Offset);
+	Result.dXY  = TileMap->TileSideInMeters*dTile + (A->Offset_ - B->Offset_);
 	Result.dz = TileMap->TileSideInMeters*dTileZ;
 	return (Result);
 
