@@ -106,3 +106,53 @@ LengthSq(V2 A){
 	return Result;
 
 }
+
+struct rectangle2
+{
+	V2 Min;
+	V2 Max;
+};
+
+inline rectangle2
+RectMinDim(V2 Min, V2 Dim) 
+{
+	rectangle2 Result;
+
+	Result.Min = Min;
+	Result.Max = Min + Dim;
+
+	return (Result);
+
+}
+
+
+inline rectangle2
+RectCenterHalfDim(V2 Center, V2 HalfDim) 
+{
+	rectangle2 Result;
+
+	Result.Min = Center - HalfDim;
+	Result.Max = Center + HalfDim;
+
+	return (Result);
+}
+
+inline rectangle2
+RectCenterDim(V2 Center, V2 Dim) 
+{
+	rectangle2 Result = RectCenterHalfDim(Center, 0.5 * Dim);
+	return (Result);
+}
+
+inline bool32
+IsInRectangle(rectangle2 Rectangle, V2 Test) 
+{
+	bool32 Result = ((Test.X >= Rectangle.Min.X) &&
+		(Test.Y >= Rectangle.Min.Y) &&
+		(Test.X < Rectangle.Max.X) &&
+		(Test.Y < Rectangle.Max.Y));
+	return (Result);
+}
+
+
+

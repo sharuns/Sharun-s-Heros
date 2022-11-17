@@ -297,8 +297,17 @@ Any entity present in the game will use this DS
 High enitity is one which is being rendered into 
 the activbve screen
 */
+enum entity_type {
+
+	Entity_Null,
+	EntityType_Hero,
+	EntityType_Wall
+
+};
+
 struct high_entity{
 
+	entity_type Type;
 	uint32 FacingDirection;
 	V2 dP;
 	V2 P; // float position
@@ -310,7 +319,7 @@ struct low_entity {
 };
 
 struct dormant_entity {
-
+	entity_type Type;
 	tile_map_position P;
 	real32 Width, Height;
 	int32 dAbsTileZ;
@@ -348,5 +357,6 @@ struct game_state{
 	dormant_entity DormantEntities[256];
 
 	loaded_bitmap Backdrop;
+	loaded_bitmap Shadow;
 	hero_bitmaps HeroBitmaps[4];
 };
