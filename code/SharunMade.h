@@ -316,20 +316,25 @@ struct high_entity{
 
 struct low_entity {
 
-};
-
-struct dormant_entity {
 	entity_type Type;
 	tile_map_position P;
 	real32 Width, Height;
 	int32 dAbsTileZ;
 	bool32 Collides;
+
 };
+
+/*struct Low_entity {
+	entity_type Type;
+	tile_map_position P;
+	real32 Width, Height;
+	int32 dAbsTileZ;
+	bool32 Collides;
+};*/
 
 //To show in which state an entity is 
 enum entity_residence {
 	EntityResidence_Nonexistant,
-	EntityResidence_Dormant,
 	EntityResidence_Low,
 	EntityResidence_High
 };
@@ -337,7 +342,6 @@ enum entity_residence {
 struct entity {
 	uint32 Residence;
 	low_entity* Low;
-	dormant_entity * Dormant;
 	high_entity * High;
 };
 
@@ -354,7 +358,6 @@ struct game_state{
 	entity_residence EntityResidence[256];
 	high_entity HighEntities[256];
 	low_entity LowEntities[256];
-	dormant_entity DormantEntities[256];
 
 	loaded_bitmap Backdrop;
 	loaded_bitmap Shadow;
