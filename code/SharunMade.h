@@ -48,6 +48,7 @@ Place : Chennai , India
 #define global_variable static
 
 #define Pi32 3.14159265359f
+#define NUMSCREENS 2
 //#define RoundingFraction 0.5f
 
 typedef uint8_t uint8;
@@ -71,6 +72,8 @@ typedef  double real64; //IEEE 754 spec, for representation of a float in binary
 #else
 #define Assert(Expression)
 #endif
+
+#define InvalidCodePath Assert(!"InvalidCodePath");
 
 #define Kilobytes(Value) ((Value)*1024)
 #define Megabytes(Value) (Kilobytes(Value)*1024)
@@ -307,11 +310,17 @@ enum entity_type {
 
 struct high_entity{
 
-	entity_type Type;
-	uint32 FacingDirection;
-	V2 dP;
 	V2 P; // float position
+	V2 dP;
+	
 	uint32 AbsTileZ;
+	uint32 FacingDirection;
+	
+	real32 Z;
+	real32 dZ;
+	
+	uint32 LowEnitityIndex;
+
 };
 
 struct low_entity {
@@ -321,6 +330,8 @@ struct low_entity {
 	real32 Width, Height;
 	int32 dAbsTileZ;
 	bool32 Collides;
+
+	uint32 HighEntityIndex;
 
 };
 
@@ -332,15 +343,8 @@ struct low_entity {
 	bool32 Collides;
 };*/
 
-//To show in which state an entity is 
-enum entity_residence {
-	EntityResidence_Nonexistant,
-	EntityResidence_Low,
-	EntityResidence_High
-};
-
 struct entity {
-	uint32 Residence;
+	uint32 LowIndex;
 	low_entity* Low;
 	high_entity * High;
 };
@@ -354,10 +358,10 @@ struct game_state{
 	tile_map_position CameraP;
 
 	uint32 PlayerIndexForController[ArrayCount(((game_input *)0)->Controllers)];
-	uint32 EntityCount;
-	entity_residence EntityResidence[256];
-	high_entity HighEntities[256];
-	low_entity LowEntities[256];
+	uint32 HighEntityCount;
+	high_entity HighEntities_[256];
+	uint32 LowEntityCount;
+	low_entity LowEntities[4096];
 
 	loaded_bitmap Backdrop;
 	loaded_bitmap Shadow;
