@@ -236,7 +236,7 @@ GAME_GET_SOUND_SAMPLES(GameGetSoundSamplesStub){
 
 #include "SharunMade_Intrinsics.h"
 #include "SharunMade_Math.h"
-#include "SharunMadeTile.h"
+#include "SharunMadeWorld.h"
 
 
 #define Minimum(A,B) ((A < B) ? (A) : (B))
@@ -274,10 +274,6 @@ PushSize_(memory_arena * Arena, memory_index Size){
 	return(Result);
 
 }
-
-struct world{
-	tile_map *TileMap;
-};
 
 struct loaded_bitmap{
 
@@ -326,7 +322,7 @@ struct high_entity{
 struct low_entity {
 
 	entity_type Type;
-	tile_map_position P;
+	world_position P;
 	real32 Width, Height;
 	int32 dAbsTileZ;
 	bool32 Collides;
@@ -337,7 +333,7 @@ struct low_entity {
 
 /*struct Low_entity {
 	entity_type Type;
-	tile_map_position P;
+	world_position P;
 	real32 Width, Height;
 	int32 dAbsTileZ;
 	bool32 Collides;
@@ -349,19 +345,28 @@ struct entity {
 	high_entity * High;
 };
 
+struct low_entity_chunk_reference
+{
+	world_chunk *  WorldChunk;
+	uint32 EntityIndexChunk;
+
+};
+
 struct game_state{
 
 	memory_arena WorldArena;
 	world * World;
 
 	uint32 CameraFollowingEntityIndex;
-	tile_map_position CameraP;
+	world_position CameraP;
 
 	uint32 PlayerIndexForController[ArrayCount(((game_input *)0)->Controllers)];
+	
+	uint32 LowEntityCount;
+	low_entity LowEntities[100000];
+
 	uint32 HighEntityCount;
 	high_entity HighEntities_[256];
-	uint32 LowEntityCount;
-	low_entity LowEntities[4096];
 
 	loaded_bitmap Backdrop;
 	loaded_bitmap Shadow;

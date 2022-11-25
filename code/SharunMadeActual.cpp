@@ -288,7 +288,7 @@ InitializePlayer(entity* Entity) {
 internal void
 MovePlayer(game_state* GameState, entity* Entity, real32 dt, V2 ddP) {
 
-	tile_map* TileMap = GameState->World->TileMap;
+	world* World = GameState->World->World;
 
 	if ((ddP.X != 0.0f) && (ddP.Y != 0.0f)) {
 
@@ -301,8 +301,8 @@ MovePlayer(game_state* GameState, entity* Entity, real32 dt, V2 ddP) {
 
 	ddP += -8.0f * Entity->dP;
 
-	tile_map_position OldPlayerP = Entity->P;
-	tile_map_position NewPlayerP = OldPlayerP;
+	world_position OldPlayerP = Entity->P;
+	world_position NewPlayerP = OldPlayerP;
 
 	V2 PlayerDelta = (0.5f * ddP * Square(dt) +
 					  Entity->dP*dt);
@@ -312,15 +312,15 @@ MovePlayer(game_state* GameState, entity* Entity, real32 dt, V2 ddP) {
 	// velocity equation v' = (at + v)
 	Entity->dP = ddP*dt + Entity->dP;
 
-	NewPlayerP = ReCannonicalizePosition(TileMap, NewPlayerP);
+	NewPlayerP = ReCannonicalizePosition(World, NewPlayerP);
 #if 1
-	tile_map_position PlayerLeft = NewPlayerP;
+	world_position PlayerLeft = NewPlayerP;
 	PlayerLeft.Offset.X -= 0.5f * Entity->Width;
-	PlayerLeft = ReCannonicalizePosition(TileMap, PlayerLeft);
+	PlayerLeft = ReCannonicalizePosition(World, PlayerLeft);
 
-	tile_map_position PlayerRight = NewPlayerP;
+	world_position PlayerRight = NewPlayerP;
 	PlayerRight.Offset.X += 0.5f * Entity->Width;
-	PlayerRight = ReCannonicalizePosition(TileMap, PlayerRight);
+	PlayerRight = ReCannonicalizePosition(World, PlayerRight);
 
 	/*Detecting boundary of a tileMap
 
@@ -339,20 +339,20 @@ MovePlayer(game_state* GameState, entity* Entity, real32 dt, V2 ddP) {
 	*/
 
 	bool32 Collided = false;
-	tile_map_position ColP = {};
+	world_position ColP = {};
 
-	if (!IsTileMapPointEmpty(TileMap, NewPlayerP)) {
+	if (!IsTileMapPointEmpty(World, NewPlayerP)) {
 
 		ColP = NewPlayerP;
 		Collided = true;
 
 	}
-	if (!IsTileMapPointEmpty(TileMap, PlayerLeft)) {
+	if (!IsTileMapPointEmpty(World, PlayerLeft)) {
 
 		ColP = PlayerLeft;
 		Collided = true;
 	}
-	if (!IsTileMapPointEmpty(TileMap, PlayerRight)) {
+	if (!IsTileMapPointEmpty(World, PlayerRight)) {
 
 		ColP = PlayerRight;
 		Collided = true;
@@ -389,7 +389,7 @@ MovePlayer(game_state* GameState, entity* Entity, real32 dt, V2 ddP) {
 	uint32 OnePastMaxTileY = 0;
 	uint32 OnePastMaxTileX = 0;
 	uint32 AbsTileZ = Entity->P.AbsTileZ;
-	tile_map_position BestPlayerP = Entity->P;
+	world_position BestPlayerP = Entity->P;
 	real32 BestDistanceSq = LengthSq(PlayerDelta);
 
 	for (uint32 AbsTileY = MinTileY;
@@ -400,14 +400,14 @@ MovePlayer(game_state* GameState, entity* Entity, real32 dt, V2 ddP) {
 			AbsTileX != OnePastMaxTileX;
 			++AbsTileX) {
 
-			tile_map_position TestTileP = CenteredTilePoint(AbsTileX, AbsTileY, AbsTileZ);
-			uint32 TileValue = GetTileValue(TileMap, TestTileP);
+			world_position TestTileP = CenteredTilePoint(AbsTileX, AbsTileY, AbsTileZ);
+			uint32 TileValue = GetTileValue(World, TestTileP);
 			if (IsTileValueEmpty(TileValue)) {
 
-				V2 MinCorner = -0.5f * V2{ TileMap->TileSideInMeters,TileMap->TileSideInMeters };
-				V2 MaxCorner = 0.5f * V2{ TileMap->TileSideInMeters,TileMap->TileSideInMeters };
+				V2 MinCorner = -0.5f * V2{ World->TileSideInMeters,World->TileSideInMeters };
+				V2 MaxCorner = 0.5f * V2{ World->TileSideInMeters,World->TileSideInMeters };
 
-				tile_map_difference RelNewPlayerP = Subtract(TileMap, &TestTileP, &NewPlayerP);
+				tile_map_difference RelNewPlayerP = Subtract(World, &TestTileP, &NewPlayerP);
 				V2 TestP = ClosestPointInRectangle(MinCorner, MaxCorner, RelNewPlayerP);
 				if (...) {
 
@@ -421,7 +421,7 @@ MovePlayer(game_state* GameState, entity* Entity, real32 dt, V2 ddP) {
 	//TODO : Change later for more complex time based way, sample offset
 	if (!AreOnSameTile(&OldPlayerP, &Entity->P)) {
 
-		uint32 NewTileValue = GetTileValue(TileMap, Entity->P);
+		uint32 NewTileValue = GetTileValue(World, Entity->P);
 		if (NewTileValue == 3) {
 			++Entity->P.AbsTileZ;
 
@@ -536,26 +536,26 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 
 		GameState->World = PushStruct(&GameState-> WorldArena, world);
 		world * World = GameState->World;
-		World->TileMap = PushStruct(&GameState-> WorldArena,tile_map);
+		World->World = PushStruct(&GameState-> WorldArena,world);
 
-		tile_map * TileMap = World->TileMap;
+		world * World = World->World;
 
-		TileMap->ChunkShift = 4;
-		TileMap->ChunkMask = (1 << TileMap->ChunkShift)-1;
-		TileMap->ChunkDim = (1 << TileMap->ChunkShift);
+		World->ChunkShift = 4;
+		World->ChunkMask = (1 << World->ChunkShift)-1;
+		World->ChunkDim = (1 << World->ChunkShift);
 
-		TileMap->TileChunkCountX = 128;
-		TileMap->TileChunkCountY = 128;
-		TileMap->TileChunkCountZ = 2;
+		World->TileChunkCountX = 128;
+		World->TileChunkCountY = 128;
+		World->TileChunkCountZ = 2;
 
-		TileMap->TileChunks = PushArray(&GameState->WorldArena,
-									   TileMap->TileChunkCountX*
-									   TileMap->TileChunkCountY*
-									   TileMap->TileChunkCountZ,
-									   tile_chunk);
+		World->TileChunks = PushArray(&GameState->WorldArena,
+									   World->TileChunkCountX*
+									   World->TileChunkCountY*
+									   World->TileChunkCountZ,
+									   world_chunk);
 		
 
-		TileMap->TileSideInMeters = 1.4f;// this like a calibration value for our world
+		World->TileSideInMeters = 1.4f;// this like a calibration value for our world
 		
 		uint32 RandomNumberIndex = 0 ;
 
@@ -647,7 +647,7 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 
 						}
 
-						SetTileValue(&GameState->WorldArena, World->TileMap,AbsTileX, AbsTileY,AbsTileZ,
+						SetTileValue(&GameState->WorldArena, World->World,AbsTileX, AbsTileY,AbsTileZ,
 							TileValue);
 					}
 			}
@@ -692,12 +692,12 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 	}
 
 	world * World = GameState->World;
-	tile_map * TileMap = World->TileMap;
+	world * World = World->World;
 
 	
 
 	int32 TileSideInPixels = 60;
-	real32 MetersToPixels = (real32)TileSideInPixels/(real32)TileMap->TileSideInMeters;
+	real32 MetersToPixels = (real32)TileSideInPixels/(real32)World->TileSideInMeters;
 
 	real32 LowerLeftX = -(real32)TileSideInPixels/2;
 	real32 LowerLeftY = (real32)Buffer->Height;
@@ -763,18 +763,18 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 				GameState->CameraP.AbsTileZ = CameraFollowingEntity->P.AbsTileZ;
 			
 
-				tile_map_difference Diff = Subtract(TileMap, &CameraFollowingEntity->P, &GameState->CameraP);
+				tile_map_difference Diff = Subtract(World, &CameraFollowingEntity->P, &GameState->CameraP);
 
-				if(Diff.dXY.X >(9.0f*TileMap->TileSideInMeters)){
+				if(Diff.dXY.X >(9.0f*World->TileSideInMeters)){
 					GameState->CameraP.AbsTileX += 17;
 				}
-				if(Diff.dXY.X < -(9.0f*TileMap->TileSideInMeters)){
+				if(Diff.dXY.X < -(9.0f*World->TileSideInMeters)){
 					GameState->CameraP.AbsTileX -= 17;
 				}
-				if(Diff.dXY.Y >(5.0f*TileMap->TileSideInMeters)){
+				if(Diff.dXY.Y >(5.0f*World->TileSideInMeters)){
 					GameState->CameraP.AbsTileY += 9;
 				}
-				if(Diff.dXY.Y < -(5.0f*TileMap->TileSideInMeters)){
+				if(Diff.dXY.Y < -(5.0f*World->TileSideInMeters)){
 					GameState->CameraP.AbsTileY -= 9;
 				}
 
@@ -793,7 +793,7 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 
 			uint32 Column = GameState->CameraP.AbsTileX +RelColumn;
 			uint32 Row = GameState->CameraP.AbsTileY + RelRow;
-			uint32 TileID = GetTileValue(TileMap, Column, Row,GameState->CameraP.AbsTileZ);
+			uint32 TileID = GetTileValue(World, Column, Row,GameState->CameraP.AbsTileZ);
 
 			if(TileID > 1){ //TileID == 0 meand there is empty space (cant move there)
 
@@ -819,8 +819,8 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 						   ScreenCenterY + MetersToPixels*GameState->CameraP.Offset.Y - ((real32)RelRow)*TileSideInPixels};
 				V2 Min = Cen - TileSide;
 				V2 Max = Cen + TileSide;
-				//real32 MinX = CenterX + ((real32)RelColumn)*TileMap->TileSideInPixels;
-				//real32 MinY = CenterY - ((real32)RelRow)*TileMap->TileSideInPixels;
+				//real32 MinX = CenterX + ((real32)RelColumn)*World->TileSideInPixels;
+				//real32 MinY = CenterY - ((real32)RelRow)*World->TileSideInPixels;
 
 
 				DrawRectangle(Buffer,Min,Max,Gray,Gray,Gray);
@@ -834,7 +834,7 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 		++EntityIndex, ++Entity) {
 
 		if (Entity->Exists) {
-			tile_map_difference Diff = Subtract(TileMap, &Entity->P, &GameState->CameraP);
+			tile_map_difference Diff = Subtract(World, &Entity->P, &GameState->CameraP);
 
 			real32 PlayerR = 1.0f;
 			real32 PlayerG = 1.0f;
