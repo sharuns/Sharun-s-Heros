@@ -107,11 +107,33 @@ LengthSq(V2 A){
 
 }
 
+
 struct rectangle2
 {
 	V2 Min;
 	V2 Max;
 };
+
+inline V2
+GetMinCorner(rectangle2 Rect)
+{
+	V2 Result = Rect.Min;
+	return (Result);
+}
+
+inline V2
+GetMaxCorner(rectangle2 Rect)
+{
+	V2 Result = Rect.Max;
+	return (Result);
+
+}
+
+inline V2 GetCenter(rectangle2 Rect)
+{
+	V2 Result = 0.5f * (Rect.Min + Rect.Max);
+	return Result;
+}
 
 inline rectangle2
 RectMinDim(V2 Min, V2 Dim) 

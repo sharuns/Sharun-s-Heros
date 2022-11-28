@@ -48,7 +48,7 @@ Place : Chennai , India
 #define global_variable static
 
 #define Pi32 3.14159265359f
-#define NUMSCREENS 2
+#define NUMSCREENS 2000
 //#define RoundingFraction 0.5f
 
 typedef uint8_t uint8;
@@ -309,7 +309,7 @@ struct high_entity{
 	V2 P; // float position
 	V2 dP;
 	
-	uint32 AbsTileZ;
+	uint32 ChunkZ;
 	uint32 FacingDirection;
 	
 	real32 Z;
@@ -371,4 +371,6 @@ struct game_state{
 	loaded_bitmap Backdrop;
 	loaded_bitmap Shadow;
 	hero_bitmaps HeroBitmaps[4];
+
+	loaded_bitmap Tree;
 };
