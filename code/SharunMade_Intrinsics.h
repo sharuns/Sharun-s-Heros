@@ -8,9 +8,6 @@ Place : Chennai , India
 #include"math.h"
 #define RoundingFraction 0.5f
 
-
-
-
 inline real32
 SignOf(int32 Value) {
 
@@ -18,7 +15,6 @@ SignOf(int32 Value) {
 	return (Result);
 
 }
-
 
 inline real32
 SquareRoot(real32 Real32){
