@@ -322,6 +322,13 @@ struct high_entity{
 
 };
 
+#define HIT_POINT_SUB_COUNT 4
+struct hit_point
+{
+	uint8 Flags;
+	uint8 FilledAmount;
+};
+
 struct low_entity {
 
 	entity_type Type;
@@ -331,6 +338,9 @@ struct low_entity {
 	bool32 Collides;
 
 	uint32 HighEntityIndex;
+
+	uint32 HitPointMax;
+	hit_point HitPoint[16];
 
 };
 
@@ -352,15 +362,14 @@ struct entity_visible_piece
 {
 	loaded_bitmap* Bitmap;
 	V2 Offset;
-	real32 Z;
-	real32 Alpha;
+	real32 OffsetZ;
+	real32 EntityZC;
+
+	real32 R, G, B, A;
+	V2 Dim;
 };
 
-struct entity_visible_piece_group
-{
-	uint32 PieceCount;
-	entity_visible_piece Pieces[8];
-};
+
 
 struct low_entity_chunk_reference
 {
@@ -390,4 +399,12 @@ struct game_state{
 	hero_bitmaps HeroBitmaps[4];
 
 	loaded_bitmap Tree;
+	real32 MetersToPixels;
+};
+
+struct entity_visible_piece_group
+{
+	uint32 PieceCount;
+	game_state* GameState;
+	entity_visible_piece Pieces[32];
 };
