@@ -7,7 +7,7 @@ Place : Chennai , India
 
 struct world_difference {
 
-	V2 dXY;
+	v2 dXY;
 	real32 dz;
 
 };
@@ -21,7 +21,7 @@ struct world_position {
 	int32 ChunkY;
 	int32 ChunkZ;
 
-	V2 Offset_;
+	v2 Offset_;
 };
 
 struct world_entity_block

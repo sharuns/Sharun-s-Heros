@@ -284,7 +284,7 @@ struct loaded_bitmap{
 
 struct hero_bitmaps{
 
-	V2 Align;
+	v2 Align;
 	loaded_bitmap Head;
 	loaded_bitmap Cape;
 	loaded_bitmap Torso;
@@ -307,8 +307,8 @@ enum entity_type {
 
 struct high_entity{
 
-	V2 P; // float position
-	V2 dP;
+	v2 P; // float position
+	v2 dP;
 	
 	uint32 ChunkZ;
 	uint32 FacingDirection;
@@ -361,12 +361,12 @@ struct entity {
 struct entity_visible_piece
 {
 	loaded_bitmap* Bitmap;
-	V2 Offset;
+	v2 Offset;
 	real32 OffsetZ;
 	real32 EntityZC;
 
 	real32 R, G, B, A;
-	V2 Dim;
+	v2 Dim;
 };
 
 

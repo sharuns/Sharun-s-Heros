@@ -17,7 +17,7 @@ IsCannonical(world* World, real32 TileRel)
 }
 
 inline bool32
-IsCannonical(world* World, V2 Offset)
+IsCannonical(world* World, v2 Offset)
 {
 	bool32 Result = (IsCannonical(World, Offset.X) && IsCannonical(World, Offset.Y));
 	return (Result);
@@ -123,7 +123,7 @@ IsTileValueEmpty(uint32 TileValue)
 
 
 inline world_position
-MapIntoChunkSpace(world* World, world_position BasePos, V2 Offset) {
+MapIntoChunkSpace(world* World, world_position BasePos, v2 Offset) {
 
 	world_position Result = BasePos;
 
@@ -167,7 +167,7 @@ Subtract(world* World, world_position* A, world_position* B) {
 
 	world_difference Result;
 
-	V2 dTileXY = { (real32)A->ChunkX - (real32)B->ChunkX,
+	v2 dTileXY = { (real32)A->ChunkX - (real32)B->ChunkX,
 				 (real32)A->ChunkY - (real32)B->ChunkY };
 
 	real32 dTileZ = (real32)A->ChunkZ - (real32)B->ChunkZ;
