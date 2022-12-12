@@ -390,12 +390,9 @@ AddLowEntity(game_state* GameState, entity_type Type, world_position *P)
 	*EntityLow = {};
 	EntityLow->Type = Type;
 
-	if(P)
-	{
-		EntityLow->P = *P;
-		ChangeEntityLocation(&GameState->WorldArena, GameState->World, EntityIndex, 0, &EntityLow->P);
-	}
-
+	
+	ChangeEntityLocation(&GameState->WorldArena, GameState->World, EntityIndex, EntityLow, 0, P);
+	
 	add_low_entity_result Result;
 	Result.Low = EntityLow;
 	Result.LowIndex = EntityIndex;
@@ -434,6 +431,17 @@ InitHitPoints(low_entity * EntityLow, uint32 HitPointCount)
 	}
 }
 
+internal add_low_entity_result
+AddSword(game_state* GameState)
+{
+	add_low_entity_result Entity = AddLowEntity(GameState, EntityType_Sword, 0);
+
+	Entity.Low->Height = 0.5f;
+	Entity.Low->Width = 1.0f;
+	Entity.Low->Collides = false;
+
+	return (Entity);
+}
 
 internal add_low_entity_result
 AddPlayer( game_state * GameState)
@@ -445,6 +453,9 @@ AddPlayer( game_state * GameState)
 	Entity.Low->Collides = true;
 
 	InitHitPoints(Entity.Low, 3);
+
+	add_low_entity_result Sword = AddSword(GameState);
+	Entity.Low->SwordLowIndex = Sword.LowIndex;
 
 	if (GameState->CameraFollowingEntityIndex ==0)
 	{
@@ -646,8 +657,8 @@ MoveEntity(game_state* GameState, entity Entity, real32 dt, v2 ddP)
 
 	}
 	world_position NewP = MapIntoChunkSpace(GameState->World, GameState->CameraP, Entity.High->P);
-	ChangeEntityLocation(&GameState->WorldArena, GameState->World, Entity.LowIndex, &Entity.Low->P, &NewP);
-	Entity.Low->P = NewP;
+	ChangeEntityLocation(&GameState->WorldArena, GameState->World, Entity.LowIndex,Entity.Low, &Entity.Low->P, &NewP);
+	//Entity.Low->P = NewP;
 
 }
 
@@ -843,6 +854,7 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 		GameState->Backdrop = DEBUGLoadBMP(Thread ,Memory->DEBUGPlatformReadEntireFile, "data/test/test_background.bmp");
 		GameState->Shadow = DEBUGLoadBMP(Thread, Memory->DEBUGPlatformReadEntireFile, "data/test/test_hero_shadow.bmp");
 		GameState->Tree = DEBUGLoadBMP(Thread, Memory->DEBUGPlatformReadEntireFile, "data/test2/tree00.bmp");
+		GameState->Sword = DEBUGLoadBMP(Thread, Memory->DEBUGPlatformReadEntireFile, "data/test2/rock03.bmp");
 		hero_bitmaps * Bitmap;
 		Bitmap = GameState->HeroBitmaps;
 
@@ -1143,12 +1155,41 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 					ddP.X = 1.0f;
 				}
 			}
-			if (Controller->ActionUp.EndedDown)
+			if (Controller->Start.EndedDown)
 			{
 				ControllingEntity.High->dZ = 3.0f;
 			}
 
+			v2 dSword = {};
+
+			if (Controller->ActionUp.EndedDown)
+			{
+				dSword = V2(0.0f, 1.0f);
+			}
+			if (Controller->ActionDown.EndedDown)
+			{
+				dSword = V2(0.0f, -1.0f);
+			}
+			if (Controller->ActionLeft.EndedDown)
+			{
+				dSword = V2(-1.0f, 0.0f);
+			}
+			if (Controller->ActionRight.EndedDown)
+			{
+				dSword = V2(1.0f, 0.0f);
+			}
+
 			MoveEntity(GameState, ControllingEntity, Input->dtForFrame, ddP);
+			if ((dSword.X != 0.0f) || (dSword.Y != 0.0f)) 
+			{
+				low_entity* Sword = GetLowEntity(GameState, ControllingEntity.Low->SwordLowIndex);
+				if (Sword && !IsValid(Sword->P))
+				{
+					world_position SwordP = ControllingEntity.Low->P;
+					ChangeEntityLocation(&GameState->WorldArena, GameState->World, 
+										ControllingEntity.Low->SwordLowIndex,Sword, 0, &SwordP);
+				}
+			}
 		}
 	}//[ssk] : End of for loop for controller
 
@@ -1236,6 +1277,12 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 			case EntityType_Wall:
 			{
 				PushBitmap(&PieceGroup, &GameState->Tree, V2(0,0),0, V2(40, 80));
+			}break;
+
+			case EntityType_Sword:
+			{
+				PushBitmap(&PieceGroup, &GameState->Shadow, V2(0, 0), 0, HeroBitmaps->Align, ShadowAlpha, 0.0f);
+				PushBitmap(&PieceGroup, &GameState->Sword, V2(0, 0), 0, V2(29, 10));
 			}break;
 
 			case EntityType_Familiar:
