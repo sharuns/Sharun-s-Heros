@@ -217,14 +217,14 @@ ChangeEntityLocation(memory_arena *Arena, world* World, uint32 LowEntityIndex,
 	Assert(!OldP || IsValid(*OldP));
 	Assert(!NewP || IsValid(*NewP));
 
-	if (OldP && AreOnSameChunk(World, OldP, NewP))
+	if (OldP && NewP && AreOnSameChunk(World, OldP, NewP))
 	{
 	}
 	else
 	{
 		if (OldP)
 		{
-			world_chunk* Chunk = GetWorldChunk(World, NewP->ChunkX, NewP->ChunkY, NewP->ChunkZ, Arena);
+			world_chunk* Chunk = GetWorldChunk(World, OldP->ChunkX, OldP->ChunkY, OldP->ChunkZ, Arena);
 			Assert(Chunk);
 			if (Chunk)
 			{
