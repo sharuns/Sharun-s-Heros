@@ -361,14 +361,16 @@ OffsetAndCheckFrequencyByArea(game_state * GameState, v2 Offset, rectangle2 High
 	{
 
 		high_entity* High = GameState->HighEntities_ + HighEntityIndex;
+		low_entity* Low = GameState->LowEntities + High->LowEnitityIndex;
 		High->P += Offset;
 
-		if (IsInRectangle(HighFrequencyBounds, High->P))
+		if (IsValid(Low->P) && IsInRectangle(HighFrequencyBounds, High->P))
 		{
 			++HighEntityIndex;
 		}
 		else
 		{
+			Assert(GameState->LowEntities[High->LowEnitityIndex].HighEntityIndex == HighEntityIndex);
 			MakeEntityLowFrequency(GameState, High->LowEnitityIndex);
 		}
 	}
@@ -842,7 +844,7 @@ UpdateSword(game_state* GameState, entity Entity, real32 dt)
 	{
 		ChangeEntityLocation(&GameState->WorldArena, GameState->World, 
 							Entity.LowIndex, Entity.Low, &Entity.Low->P, 0);
-		Entity.High->P += V2(1000000.0f, 1000000.0f);
+		//Entity.High->P += V2(1000000.0f, 1000000.0f);
 	}
 }
 
