@@ -29,8 +29,9 @@ IsValid(world_position P)
 inline bool32
 IsCannonical(world* World, real32 TileRel)
 {
-	bool32 Result = ((TileRel >= -0.5f * World->ChunkSideInMeters) &&
-		(TileRel <= 0.5f * World->ChunkSideInMeters));
+	real32 Epsilon = 0.0001f;
+	bool32 Result = ((TileRel >= -(0.5f * World->ChunkSideInMeters + Epsilon)) &&
+					(TileRel <= (0.5f * World->ChunkSideInMeters + Epsilon)));
 	return (Result);
 }
 
@@ -42,8 +43,8 @@ IsCannonical(world* World, v2 Offset)
 }
 
 inline bool32
-AreOnSameChunk(world * World, world_position* A, world_position* B) {
-
+AreOnSameChunk(world * World, world_position* A, world_position* B) 
+{
 	Assert(IsCannonical(World, A->Offset_));
 	Assert(IsCannonical(World, B->Offset_));
 
@@ -210,7 +211,7 @@ CenteredChunkPoint(uint32 ChunkX, uint32 ChunkY, uint32 ChunkZ) {
 
 
 inline void 
-ChangeEntityLocation(memory_arena *Arena, world* World, uint32 LowEntityIndex,
+ChangeEntityLocationRaw(memory_arena *Arena, world* World, uint32 LowEntityIndex,
 	world_position* OldP, world_position* NewP)
 {
 
@@ -288,146 +289,33 @@ ChangeEntityLocation(memory_arena *Arena, world* World, uint32 LowEntityIndex,
 	}
 }
 
+
 internal void 
 ChangeEntityLocation(memory_arena* Arena, world* World, uint32 LowEntityIndex,
-					low_entity* LowEntity, world_position* OldP, world_position* NewP)
+					low_entity* LowEntity, world_position NewPInit)
 {
-	ChangeEntityLocation(Arena, World, LowEntityIndex, OldP, NewP);
+	world_position *OldP = 0;
+	world_position* NewP = 0;
+
+	if (!IsSet(&LowEntity->Sim, EntityFlag_Nonspatial) && IsValid(LowEntity->P))
+	{
+		OldP = &LowEntity->P;
+	}
+
+	if (IsValid(NewPInit))
+	{
+		NewP = &NewPInit;
+	}
+
+	ChangeEntityLocationRaw(Arena, World, LowEntityIndex, OldP, NewP);
 	if (NewP)
 	{
 		LowEntity->P = *NewP;
+		ClearFlag(&LowEntity->Sim, EntityFlag_Nonspatial);
 	}
 	else
 	{
 		LowEntity->P = NullPosition();
+		AddFlag(&LowEntity->Sim, EntityFlag_Nonspatial);
 	}
 }
-
-
-#if 0
-
-inline world_position
-GetChunkPositionFor(world* World, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsTileZ)
-{
-	world_position Result;
-
-	Result.ChunkX = AbsTileX >> World->ChunkShift;
-	Result.ChunkY = AbsTileY >> World->ChunkShift;
-	Result.ChunkZ = AbsTileZ;
-	Result.RelTileX = AbsTileX & World->ChunkMask;
-	Result.RelTileY = AbsTileY & World->ChunkMask;
-
-	return (Result);
-}
-
-
-
-inline bool32
-IsTileMapPointEmpty(world* World, world_position Pos)
-{
-
-	uint32 TileChunkValue = GetTileValue(World, Pos);
-	bool32 Empty = IsTileValueEmpty(TileChunkValue);
-	return (Empty);
-}
-
-
-
-
-/*
-	This function checks on the basis of X and Y if we are presnt inside the tile map or not
-	so as to find the boundaries of that tile map
-
-*/
-inline bool32
-IsTileChunkTileEmpty(world* World, world_chunk* WorldChunk, uint32 TestX, uint32 TestY)
-{
-	bool32 Empty = false;
-	if (WorldChunk)
-	{
-		uint32 TileChunkValue = GetTileValueUnchecked(World, WorldChunk, TestX, TestY);
-		Empty = (TileChunkValue == 0);
-	}
-	return (Empty);
-}
-
-
-inline uint32
-GetTileValueUnchecked(world* World, world_chunk* WorldChunk,
-	int32 TileX, int32 TileY)
-{
-
-	Assert(WorldChunk);
-	Assert((TileX < World->ChunkDim));
-	Assert(TileY < World->ChunkDim);
-	uint32 TileChunkValue = WorldChunk->Tiles[TileY * World->ChunkDim + TileX];
-	return (TileChunkValue);
-}
-
-
-inline void
-SetTileValueUnchecked(world* World, world_chunk* WorldChunk,
-	int32 TileX, int32 TileY, int32 TileValue)
-{
-
-	Assert(WorldChunk);
-	Assert((TileX < World->ChunkDim));
-	Assert(TileY < World->ChunkDim);
-	WorldChunk->Tiles[TileY * World->ChunkDim + TileX] = TileValue;
-}
-
-
-inline uint32
-GetTileValue(world* World, world_chunk* WorldChunk,
-	uint32 TestTileX, uint32 TestTileY)
-{
-	uint32 TileChunkValue = 0;
-
-	if (WorldChunk && WorldChunk->Tiles)
-	{
-		TileChunkValue = GetTileValueUnchecked(World, WorldChunk, TestTileX, TestTileY);
-	}
-	return(TileChunkValue);
-}
-
-
-internal uint32
-GetTileValue(world* World, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsTileZ) {
-
-	tile_chunk_position ChunkPos = GetChunkPositionFor(World, AbsTileX, AbsTileY, AbsTileZ);
-	world_chunk* WorldChunk = GetTileChunk(World, ChunkPos.ChunkX, ChunkPos.ChunkY, ChunkPos.ChunkZ);
-	uint32 TileChunkValue = GetTileValue(World, WorldChunk, ChunkPos.RelTileX, ChunkPos.RelTileY);
-
-	return(TileChunkValue);
-}
-
-internal uint32
-GetTileValue(world* World, world_position Pos) {
-
-	uint32 TileChunkValue = GetTileValue(World, Pos.AbsTileX, Pos.AbsTileY, Pos.AbsTileZ);
-
-	return(TileChunkValue);
-}
-
-inline void
-SetTileValue(world* World, world_chunk* WorldChunk,
-	uint32 TestTileX, uint32 TestTileY,
-	uint32 TileValue) {
-
-	if (WorldChunk && WorldChunk->Tiles) {
-		SetTileValueUnchecked(World, WorldChunk, TestTileX, TestTileY, TileValue);
-	}
-}
-
-
-internal void
-SetTileValue(memory_arena* Arena, world* World,
-	uint32 AbsTileX, uint32 AbsTileY, uint32 AbsTileZ,
-	uint32 TileValue)
-{
-
-	tile_chunk_position ChunkPos = GetChunkPositionFor(World, AbsTileX, AbsTileY, AbsTileZ);
-	world_chunk* WorldChunk = GetTileChunk(World, ChunkPos.ChunkX, ChunkPos.ChunkY, ChunkPos.ChunkZ, Arena);
-	SetTileValue(World, WorldChunk, ChunkPos.RelTileX, ChunkPos.RelTileY, TileValue);
-}
-#endif

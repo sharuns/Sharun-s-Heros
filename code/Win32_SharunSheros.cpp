@@ -16,6 +16,7 @@ Place : Chennai , India
 //We Are now creating 2 translation units One for the Windows Layer and another for the Game Code 
 //This is done so that we can do Debug with Laoding a DLL While the application is running
 
+#include "SharunMade_Platform.h"
 #include "SharunMade.h" 
 #include "Win32_SharunSheros.h" 
 

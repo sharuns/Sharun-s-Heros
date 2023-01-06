@@ -1,3 +1,8 @@
+/*
+Date : 12th feb 2021
+Author : Sharun S
+Place : Chennai , India
+*/
 #pragma once
 
 #define GAME_SCREEN_RESOLUTION_WIDTH 960

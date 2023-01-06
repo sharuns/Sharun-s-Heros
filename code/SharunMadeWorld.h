@@ -1,9 +1,9 @@
-#pragma once
 /*
 Date : 25th Nov 2022
 Author : Sharun S
 Place : Chennai , India
 */
+#pragma once
 
 struct world_difference {
 
