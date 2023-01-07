@@ -214,5 +214,15 @@ IsInRectangle(rectangle2 Rectangle, v2 Test)
 	return (Result);
 }
 
+inline rectangle2
+AddRadiusTo(rectangle2 A, real32 RadiusW, real32 RadiusH)
+{
+	rectangle2 Result;
+
+	Result.Min = A.Min - V2(RadiusW, RadiusW);
+	Result.Max = A.Max + V2(RadiusH, RadiusH);
+
+	return (Result);
+}
 
 
