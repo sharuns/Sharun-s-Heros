@@ -59,6 +59,8 @@ struct sim_entity
 	real32 dZ;
 	v2 dP;
 
+	real32 DistanceLimit;
+
 	real32 Width, Height;
 
 	uint32 FacingDirection;
@@ -70,7 +72,6 @@ struct sim_entity
 	hit_point HitPoint[16];
 
 	entity_reference Sword;
-	real32 DistanceRemaining;
 };
 
 struct sim_entity_hash 

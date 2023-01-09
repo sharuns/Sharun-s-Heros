@@ -841,7 +841,7 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 						}
 						MoveSpec.UnitMaxAccelVector = false;
 						MoveSpec.Drag = 8.0f;
-						MoveSpec.Speed = 25.0f;
+						MoveSpec.Speed = 40.0f;
 						ddP = ConHero->ddP;
 
 						if ((ConHero->dSword.X != 0.0f) || (ConHero->dSword.Y != 0.0f))
@@ -850,7 +850,7 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 
 							if (Sword && IsSet(Sword, EntityFlag_Nonspatial))
 							{
-								Sword->DistanceRemaining = 5.0f;
+								Sword->DistanceLimit = 5.0f;
 								MakeEntitySpatial(Sword, Entity->P, Sword->dP = 2.0f * ConHero->dSword);
 							}
 						}
@@ -878,11 +878,7 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 				MoveSpec.Speed = 0.0f;
 
 				v2 OldP = Entity->P;
-				MoveEntity(SimRegion, Entity, dt, &MoveSpec, V2(0, 0));
-				real32 DistanceTraveled = Length(Entity->P - OldP);
-
-				Entity->DistanceRemaining -= DistanceTraveled;
-				if (Entity->DistanceRemaining < 0)
+				if (Entity->DistanceLimit == 0.0f)
 				{
 					MakeEntityNonSpatial(Entity);
 				}
@@ -919,7 +915,7 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 
 				if (ClosestHero && (ClosestHeroDSq > Square(2.0f)))
 				{
-					real32 Acceleration = 0.1f;
+					real32 Acceleration = 0.3f;
 					real32 OneOverLength = (Acceleration / SquareRoot(ClosestHeroDSq));
 					ddP = OneOverLength * (ClosestHero->P - Entity->P);
 				}
@@ -927,7 +923,6 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 				MoveSpec.UnitMaxAccelVector = true;
 				MoveSpec.Drag = 8.0f;
 				MoveSpec.Speed = 50.0f;
-				MoveEntity(SimRegion, Entity, dt, &MoveSpec, ddP);
 
 				Entity->tBob += dt;
 				if (Entity->tBob > (2.0f * Pi32))
