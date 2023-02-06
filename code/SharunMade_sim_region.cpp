@@ -115,6 +115,14 @@ AddEntityRaw(game_state *GameState, sim_region * SimRegion, uint32 StorageIndex,
 	return (Entity);
 }
 
+internal bool32
+EntityOverlapsRectangle(v3 P, v3 Dim, rectangle3 Rect)
+{
+	rectangle3 Grown = AddRadiusTo(Rect, 0.5f * Dim);
+	bool32 Result = IsInRectangle(Grown, P);
+	return (Result);
+}
+
 internal sim_entity *
 AddEntity(game_state * GameState,sim_region* SimRegion,uint32 StorageIndex, low_entity* Source, v3 * SimP)
 {
@@ -124,7 +132,7 @@ AddEntity(game_state * GameState,sim_region* SimRegion,uint32 StorageIndex, low_
 		if (SimP)
 		{
 			Dest->P = *SimP;
-			Dest->Updatable =  IsInRectangle(SimRegion->UpdatableBounds, Dest->P);
+			Dest->Updatable =  EntityOverlapsRectangle( Dest->P, Dest->Dim, SimRegion->UpdatableBounds);
 		}
 		else
 		{
@@ -135,18 +143,22 @@ AddEntity(game_state * GameState,sim_region* SimRegion,uint32 StorageIndex, low_
 }
 
 
+
+
 internal sim_region * 
-BeginSim(memory_arena *SimArena,game_state *GameState, world * World ,world_position Origin, rectangle3 Bounds)
+BeginSim(memory_arena *SimArena,game_state *GameState, world * World ,world_position Origin, rectangle3 Bounds, real32 dt)
 {
 	sim_region* SimRegion = PushStruct(SimArena, sim_region);
 	ZeroStruct(SimRegion->Hash);
 
-	real32 UpdateSafetyMargin = 1.0f;
+	SimRegion->MaxEntityRadius = 5.0f;
+	SimRegion->MaxEntityVelocity = 30.0f;
+	real32 UpdateSafetyMargin = SimRegion->MaxEntityRadius + SimRegion->MaxEntityVelocity *dt;
 	real32 UpdateSafetyMarginZ = 1.0f;
 
 	SimRegion->World = World;
 	SimRegion->Origin = Origin;
-	SimRegion->UpdatableBounds = Bounds;
+	SimRegion->UpdatableBounds = AddRadiusTo(Bounds, V3(SimRegion->MaxEntityRadius, SimRegion->MaxEntityRadius, SimRegion->MaxEntityRadius));
 	SimRegion->Bounds = AddRadiusTo(SimRegion->UpdatableBounds,
 									V3(UpdateSafetyMargin, UpdateSafetyMargin, UpdateSafetyMarginZ));
 
@@ -182,7 +194,7 @@ BeginSim(memory_arena *SimArena,game_state *GameState, world * World ,world_posi
 						{
 							v3 SimSpaceP = GetSimSpaceP(SimRegion, Low);
 
-							if (IsInRectangle(SimRegion->Bounds, SimSpaceP))
+							if (EntityOverlapsRectangle(SimSpaceP, Low->Sim.Dim, SimRegion->Bounds))
 							{
 								AddEntity(GameState, SimRegion, LowEntityIndex, Low, &SimSpaceP);
 							}
@@ -367,6 +379,7 @@ MoveEntity(game_state *GameState, sim_region *SimRegion, sim_entity *Entity, rea
 	v3 PlayerDelta = (0.5f * ddP * Square(dt) + Entity->dP * dt);
 	// velocity equation v' = (at + v)
 	Entity->dP = ddP * dt + Entity->dP;
+	Assert(LengthSq(Entity->dP) <= Square(SimRegion->MaxEntityVelocity));
 	v3 NewPlayerP = OldPlayerP + PlayerDelta;
 
 	real32 DistanceRemaining = Entity->DistanceLimit;
@@ -404,12 +417,9 @@ MoveEntity(game_state *GameState, sim_region *SimRegion, sim_entity *Entity, rea
 					sim_entity* TestEntity = SimRegion->Entities + TestHighEntityIndex;
 					if (ShouldCollide(GameState, Entity,TestEntity))
 					{
-						if (IsSet(TestEntity, EntityFlag_Collides) &&
-							!IsSet(Entity, EntityFlag_Nonspatial))
-						{
-							v3 MinkowskiDiameter = { TestEntity->Width + Entity->Width,
-													TestEntity->Height + Entity->Height,
-													2.0f * World->TileDepthInMeters };
+							v3 MinkowskiDiameter = { TestEntity->Dim.X + Entity->Dim.X,
+													 TestEntity->Dim.Y + Entity->Dim.Y,
+													 TestEntity->Dim.Z + Entity->Dim.Z	};
 
 							v3 MinCorner = -0.5f * MinkowskiDiameter;
 							v3 MaxCorner = 0.5f * MinkowskiDiameter;
@@ -445,7 +455,6 @@ MoveEntity(game_state *GameState, sim_region *SimRegion, sim_entity *Entity, rea
 								HitEntity = TestEntity;
 							}
 
-						}
 					}
 				}
 			}
@@ -486,6 +495,7 @@ MoveEntity(game_state *GameState, sim_region *SimRegion, sim_entity *Entity, rea
 	if (Entity->P.Z < 0)
 	{
 		Entity->P.Z = 0;
+		Entity->dP.Z = 0;
 	}
 	//position equation p' = (1/2 * at^2 + Vt + p)
 	if (Entity->DistanceLimit != 0.0f)
