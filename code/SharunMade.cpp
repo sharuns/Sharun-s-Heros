@@ -248,15 +248,6 @@ DEBUGLoadBMP(thread_context * Thread, debug_platform_read_entire_file * ReadEnti
 	return (Result);
 }
 
-inline v2
-GetCameraSpace(game_state* GameState, low_entity* EntityLow)
-{
-	world_difference Diff = Subtract(GameState->World, &EntityLow->P, &GameState->CameraP);
-	v2 Result = Diff.dXY;
-
-	return (Result);
-}
-
 struct add_low_entity_result
 {
 	low_entity* Low;
@@ -857,9 +848,11 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 
 	uint32 TileSpanX = 17 * 3;
 	uint32 TileSpanY = 9 * 3;
-	rectangle2 CameraBounds = RectCenterDim(V2(0, 0),
-											World->TileSideInMeters * V2((real32)TileSpanX,
-											(real32)TileSpanY));
+	uint32 TileSpanZ = 1;
+	rectangle3 CameraBounds = RectCenterDim(V3(0, 0, 0),
+											V3((real32)TileSpanX,
+											(real32)TileSpanY,
+											(real32)TileSpanZ)*World->TileSideInMeters);
 
 	memory_arena SimArena;
 	InitailizeArena(&SimArena, Memory->TransientStorageSize, Memory->TransientStorage);
@@ -890,14 +883,14 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 
 			real32 dt = Input->dtForFrame;
 
-			real32 ShadowAlpha = 1.0f - 0.5f * Entity->Z;
+			real32 ShadowAlpha = 1.0f - 0.5f * Entity->P.Z;
 			if (ShadowAlpha < 0)
 			{
 				ShadowAlpha = 0.0f;
 			}
 
 			move_spec MoveSpec = DefaultMoveSpec();
-			v2 ddP = {};
+			v3 ddP = {};
 
 			hero_bitmaps* HeroBitmaps = &GameState->HeroBitmaps[Entity->FacingDirection];
 			switch (Entity->Type)
@@ -914,12 +907,12 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 					{
 						if (ConHero->dZ != 0.0f)
 						{
-							Entity->dZ = ConHero->dZ;
+							Entity->dP.Z = ConHero->dZ;
 						}
 						MoveSpec.UnitMaxAccelVector = false;
 						MoveSpec.Drag = 8.0f;
 						MoveSpec.Speed = 40.0f;
-						ddP = ConHero->ddP;
+						ddP = V3(ConHero->ddP,0);
 
 						if ((ConHero->dSword.X != 0.0f) || (ConHero->dSword.Y != 0.0f))
 						{
@@ -928,7 +921,8 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 							if (Sword && IsSet(Sword, EntityFlag_Nonspatial))
 							{
 								Sword->DistanceLimit = 5.0f;
-								MakeEntitySpatial(Sword, Entity->P, Sword->dP = 2.0f * ConHero->dSword);
+								MakeEntitySpatial(Sword, Entity->P,
+												 Entity->dP + 5.0f * V3(ConHero->dSword,0));
 								AddCollisionRule(GameState, Sword->StorageIndex, Entity->StorageIndex, false);
 							}
 						}
@@ -955,7 +949,6 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 				MoveSpec.Drag = 0.0f;
 				MoveSpec.Speed = 0.0f;
 
-				v2 OldP = Entity->P;
 				if (Entity->DistanceLimit == 0.0f)
 				{
 					ClearCollisionRulesFor(GameState, Entity->StorageIndex);
@@ -981,10 +974,6 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 					if (TestEntity->Type == EntityType_Hero)
 					{
 						real32 TestDSq = LengthSq(TestEntity->P - Entity->P);
-						if (TestEntity->Type == EntityType_Hero)
-						{
-							TestDSq *= 0.75f;
-						}
 						if (ClosestHeroDSq > TestDSq)
 						{
 							ClosestHero = TestEntity;
@@ -1034,7 +1023,7 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 			
 			real32 EntityGroundPointX = ScreenCenterX + MetersToPixels * Entity->P.X;
 			real32 EntityGroundPointY = ScreenCenterY - MetersToPixels * Entity->P.Y;
-			real32 EntityZ = -MetersToPixels * Entity->Z;
+			real32 EntityZ = -MetersToPixels * Entity->P.Z;
 
 
 #if 0		
@@ -1063,6 +1052,11 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 			}
 		}
 	}
+
+	world_position WorldOrigin = {};
+	v3 Diff = Subtract(SimRegion->World, &WorldOrigin, &SimRegion->Origin);
+	DrawRectangle(Buffer, Diff.XY, V2(10.0f, 10.0f), 1.0f, 1.0f, 0.0f);
+
 	EndSim(SimRegion, GameState);
 }//End of GameUpdateAndRenderer
 

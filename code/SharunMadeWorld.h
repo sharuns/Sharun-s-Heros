@@ -5,13 +5,6 @@ Place : Chennai , India
 */
 #pragma once
 
-struct world_difference {
-
-	v2 dXY;
-	real32 dz;
-
-};
-
 struct world_position {
 
 	// NOTE : sharun : These are fixed point tile location.
@@ -21,7 +14,7 @@ struct world_position {
 	int32 ChunkY;
 	int32 ChunkZ;
 
-	v2 Offset_;
+	v3 Offset_;
 };
 
 struct world_entity_block
@@ -42,7 +35,8 @@ struct world_chunk {
 struct world {
 
 	real32 TileSideInMeters;
-	real32 ChunkSideInMeters;
+	real32 TileDepthInMeters;
+	v3 ChunkDimInMeters;
 	world_chunk ChunkHash[4096];
 
 	world_entity_block* FirstFree;
