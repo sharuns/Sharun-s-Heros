@@ -283,13 +283,27 @@ AddWall(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsTileZ
 	world_position P = ChunkPositionFromTilePosition(GameState->World, AbsTileX, AbsTileY, AbsTileZ);
 	add_low_entity_result Entity = AddLowEntity(GameState, EntityType_Wall,P);
 
-	Entity.Low->P = ChunkPositionFromTilePosition(GameState->World, AbsTileX, AbsTileY, AbsTileZ);
 	Entity.Low->Sim.Dim.Y = GameState->World->TileSideInMeters;
 	Entity.Low->Sim.Dim.X = Entity.Low->Sim.Dim.Y;
 	AddFlag(&Entity.Low->Sim, EntityFlag_Collides);
 
 	return (Entity);
 }
+
+internal add_low_entity_result
+AddStair(game_state* GameState, uint32 AbsTileX, uint32 AbsTileY, uint32 AbsTileZ)
+{
+	world_position P = ChunkPositionFromTilePosition(GameState->World, AbsTileX, AbsTileY, AbsTileZ);
+	add_low_entity_result Entity = AddLowEntity(GameState, EntityType_Stairwell, P);
+
+	Entity.Low->Sim.Dim.Y = GameState->World->TileSideInMeters;
+	Entity.Low->Sim.Dim.X = Entity.Low->Sim.Dim.Y;
+	Entity.Low->Sim.Dim.Z = GameState->World->TileDepthInMeters;
+	//AddFlag(&Entity.Low->Sim, EntityFlag_Collides);
+
+	return (Entity);
+}
+
 
 internal void
 InitHitPoints(low_entity * EntityLow, uint32 HitPointCount)
@@ -519,6 +533,7 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 		GameState->Shadow = DEBUGLoadBMP(Thread, Memory->DEBUGPlatformReadEntireFile, "data/test/test_hero_shadow.bmp");
 		GameState->Tree = DEBUGLoadBMP(Thread, Memory->DEBUGPlatformReadEntireFile, "data/test2/tree00.bmp");
 		GameState->Sword = DEBUGLoadBMP(Thread, Memory->DEBUGPlatformReadEntireFile, "data/test2/rock03.bmp");
+		GameState->Stairwell = DEBUGLoadBMP(Thread, Memory->DEBUGPlatformReadEntireFile, "data/test2/rock02.bmp");
 		hero_bitmaps * Bitmap;
 		Bitmap = GameState->HeroBitmaps;
 
@@ -611,15 +626,15 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 			Assert(RandomNumberIndex < ArrayCount(RandomNumberTable));
 			uint32 RandomChoice;
 			
-			//if(DoorUp ||DoorDown)
+			if(DoorUp ||DoorDown)
 			{
 			RandomChoice = RandomNumberTable[RandomNumberIndex++]%2;
 			}
-#if 0
-			else{
+			else
+			{
 				RandomChoice = RandomNumberTable[RandomNumberIndex++]%3;
 			}
-#endif
+
 			bool32 CreatedZDoor = false;
 			if(RandomChoice == 2){
 				CreatedZDoor = true;
@@ -656,41 +671,37 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 					uint32 AbsTileX = ScreenX * TilesPerWidth + TileX;
 					uint32 AbsTileY = ScreenY * TilesPerHeight + TileY;
 					//[ssk] : Making a boundary wall
-					uint32 TileValue = 1;
+					bool32 ShouldBeDoor = false;
 
 					if(( TileX == 0 ) && (!DoorLeft || ( TileY != (TilesPerHeight/2))))
 					{
-						TileValue =2;
+						ShouldBeDoor = true;
 					}
 					if(( TileX == (TilesPerWidth -1) ) && (!DoorRight|| ( TileY != (TilesPerHeight/2))))
 					{
-						TileValue =2;
+						ShouldBeDoor = true;
 					}
 					if(( TileY == 0 ) && (!DoorBottom || (TileX != (TilesPerWidth/2))))
 					{	
-						TileValue = 2;
+						ShouldBeDoor = true;
 					}
 					if(( TileY == (TilesPerHeight -1) ) && (!DoorTop || (TileX != (TilesPerWidth/2))))
 					{	
-						TileValue = 2;
+						ShouldBeDoor = true;
 					}
-					if((TileX == 10)&&(TileY == 6))
-					{
-						if(DoorUp)
-						{
-							TileValue = 3;
-						}
-						if(DoorDown)
-						{
-							TileValue = 4;
-						}
 
-					}
-					//[ssk] : Add wall entity based on the tile value 52 wall tiles ??
-					if (TileValue == 2 )
+					if (ShouldBeDoor)
 					{
 						AddWall(GameState, AbsTileX, AbsTileY, AbsTileZ);
 					}
+					else if (CreatedZDoor)
+					{
+						if ((TileX == 10) && (TileY == 6))
+						{
+							AddStair(GameState, AbsTileX, AbsTileY, DoorDown ? AbsTileZ -1 : AbsTileZ);
+						}
+					}
+					//[ssk] : Add wall entity based on the tile value 52 wall tiles ?
 					
 				}//[ssk] : End of for loop :  TilesPerWidth
 
@@ -746,7 +757,7 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 
 		GameState->CameraP = NewCameraP;
 		
-		AddMonster(GameState, CameraTileX + 2, CameraTileY + 2, CameraTileZ);
+		AddMonster(GameState, CameraTileX - 3, CameraTileY + 2, CameraTileZ);
 
 		for (int FamiliarIndex = 0;
 			FamiliarIndex < 1;
@@ -940,6 +951,11 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 			case EntityType_Wall:
 			{
 				PushBitmap(&PieceGroup, &GameState->Tree, V2(0, 0), 0, V2(40, 80));
+			}break;
+
+			case EntityType_Stairwell:
+			{
+				PushBitmap(&PieceGroup, &GameState->Stairwell, V2(0, 0), 0, V2(37, 37));
 			}break;
 
 			case EntityType_Sword:
