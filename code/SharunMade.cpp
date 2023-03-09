@@ -469,9 +469,16 @@ ClearCollisionRulesFor(game_state* GameState, uint32 StorageIndex)
 
 }
 
+
+internal bool32
+RemoveCollisionRule(game_state* GameState, uint32 StorageIndexA, uint32 StorageIndexB)
+{
+}
+
 internal void
 AddCollisionRule(game_state* GameState, uint32 StorageIndexA, uint32 StorageIndexB, bool32 ShouldCollide)
 {
+	bool32 Added = false;
 	bool32 Result = false;
 	if (StorageIndexA > StorageIndexB)
 	{
@@ -508,6 +515,7 @@ AddCollisionRule(game_state* GameState, uint32 StorageIndexA, uint32 StorageInde
 		
 		Found->NextInHash = GameState->CollisionRuleHash[HashBucket];
 		GameState->CollisionRuleHash[HashBucket] = Found;
+		Added = true;
 	}
 	if (Found)
 	{
@@ -515,6 +523,8 @@ AddCollisionRule(game_state* GameState, uint32 StorageIndexA, uint32 StorageInde
 		Found->StorageIndexB = StorageIndexB;
 		Found->ShouldCollide = ShouldCollide;
 	}
+
+	//return (Added);
 }
 
 extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
