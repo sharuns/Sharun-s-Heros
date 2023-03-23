@@ -71,7 +71,7 @@ struct controlled_hero
 
 struct pairwise_collision_rule 
 {
-	bool32 ShouldCollide;
+	bool32 CanCollide;
 	uint32 StorageIndexA;
 	uint32 StorageIndexB;
 
