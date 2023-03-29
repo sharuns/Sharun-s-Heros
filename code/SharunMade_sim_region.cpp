@@ -478,60 +478,64 @@ MoveEntity(game_state *GameState, sim_region *SimRegion, sim_entity *Entity, rea
 					++TestHighEntityIndex)
 				{
 					sim_entity* TestEntity = SimRegion->Entities + TestHighEntityIndex;
-					if (CanCollide(GameState, Entity,TestEntity))
+					if (CanCollide(GameState, Entity, TestEntity))
 					{
 						v3 MinkowskiDiameter = { TestEntity->Dim.X + Entity->Dim.X,
 												 TestEntity->Dim.Y + Entity->Dim.Y,
-												 TestEntity->Dim.Z + Entity->Dim.Z	};
+												 TestEntity->Dim.Z + Entity->Dim.Z };
 
 						v3 MinCorner = -0.5f * MinkowskiDiameter;
 						v3 MaxCorner = 0.5f * MinkowskiDiameter;
 
 						v3 Rel = Entity->P - TestEntity->P;
 
-						real32 tMinTest = tMin;
-						v3 TestWallNormal = {};
-						sim_entity* TestHitEntity = 0;
-						if (TestWall(MinCorner.X, Rel.X, Rel.Y, PlayerDelta.X, PlayerDelta.Y,
-							&tMinTest, MinCorner.Y, MaxCorner.Y))
+						if ((Rel.Z >= MinCorner.Z) && (Rel.Z < MaxCorner.Z))
 						{
+							real32 tMinTest = tMin;
+							v3 TestWallNormal = {};
 
-							TestWallNormal = v3{ -1,0,0 };
-							TestHitEntity = TestEntity;
-						}
-
-						if (TestWall(MaxCorner.X, Rel.X, Rel.Y, PlayerDelta.X, PlayerDelta.Y,
-							&tMinTest, MinCorner.Y, MaxCorner.Y))
-						{
-							TestWallNormal = v3{ 1,0,0 };
-							TestHitEntity = TestEntity;
-						}
-
-						if (TestWall(MinCorner.Y, Rel.Y, Rel.X, PlayerDelta.Y, PlayerDelta.X,
-							&tMinTest, MinCorner.X, MaxCorner.X))
-						{
-							TestWallNormal = v3{ 0,-1,0 };
-							TestHitEntity = TestEntity;
-						}
-
-						if (TestWall(MaxCorner.Y, Rel.Y, Rel.X, PlayerDelta.Y, PlayerDelta.X,
-							&tMinTest, MinCorner.X, MaxCorner.X))
-						{
-							TestWallNormal = v3{ 0,1,0 };
-							TestHitEntity = TestEntity;
-						}
-
-						if (TestHitEntity)
-						{
-							v3 TestP = Entity->P + tMinTest*PlayerDelta;
-							if (SpeculativeCollide(Entity, TestEntity))
+							bool32 HitThis = false;
+							if (TestWall(MinCorner.X, Rel.X, Rel.Y, PlayerDelta.X, PlayerDelta.Y,
+								&tMinTest, MinCorner.Y, MaxCorner.Y))
 							{
-								tMin = tMinTest;
-								WallNormal = TestWallNormal;
-								HitEntity = TestHitEntity;
-							}
-						}
 
+								TestWallNormal = v3{ -1,0,0 };
+								HitThis = true;
+							}
+
+							if (TestWall(MaxCorner.X, Rel.X, Rel.Y, PlayerDelta.X, PlayerDelta.Y,
+								&tMinTest, MinCorner.Y, MaxCorner.Y))
+							{
+								TestWallNormal = v3{ 1,0,0 };
+								HitThis = true;
+							}
+
+							if (TestWall(MinCorner.Y, Rel.Y, Rel.X, PlayerDelta.Y, PlayerDelta.X,
+								&tMinTest, MinCorner.X, MaxCorner.X))
+							{
+								TestWallNormal = v3{ 0,-1,0 };
+								HitThis = true;
+							}
+
+							if (TestWall(MaxCorner.Y, Rel.Y, Rel.X, PlayerDelta.Y, PlayerDelta.X,
+								&tMinTest, MinCorner.X, MaxCorner.X))
+							{
+								TestWallNormal = v3{ 0,1,0 };
+								HitThis = true;
+							}
+
+							if (HitThis)
+							{
+								v3 TestP = Entity->P + tMinTest * PlayerDelta;
+								if (SpeculativeCollide(Entity, TestEntity))
+								{
+									tMin = tMinTest;
+									WallNormal = TestWallNormal;
+									HitEntity = TestEntity;
+								}
+							}
+
+						}
 					}
 				}
 			}

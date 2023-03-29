@@ -106,13 +106,13 @@ GetWorldChunk(world* World, int32 ChunkX, int32 ChunkY, int32 ChunkZ,
 }
 
 internal void
-InitializeWorld(world* World, real32 TileSideInMeters)
+InitializeWorld(world* World, real32 TileSideInMeters, real32 TileDepthInMeters)
 {
 	World->TileSideInMeters = TileSideInMeters;
 	World->ChunkDimInMeters = {(real32)TILES_PER_CHUNK * TileSideInMeters,
 								(real32)TILES_PER_CHUNK* TileSideInMeters,
-								TileSideInMeters };
-	World->TileDepthInMeters = (real32)TileSideInMeters;
+								TileSideInMeters};
+	World->TileDepthInMeters = (real32)TileDepthInMeters;
 	World->FirstFree = 0;
 
 	for (uint32 ChunkIndex = 0;
