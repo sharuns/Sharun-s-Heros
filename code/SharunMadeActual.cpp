@@ -162,7 +162,7 @@ DrawBitmap(game_offscreen_buffer * Buffer, loaded_bitmap * Bitmap, real32 RealX,
 
 		DestRow += Buffer->Pitch;
 		SourceRow -= Bitmap->Width;
-}
+	}
 
 }
 

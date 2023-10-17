@@ -109,6 +109,16 @@ Clamp01(v3 Value)
 
 }
 
+inline v2
+Clamp01(v2 Value)
+{
+	v2  Result;
+	Result.X = Clamp01(Value.X);
+	Result.Y = Clamp01(Value.Y);
+	return Result;
+}
+
+
 inline v4 V4(real32 X, real32 Y, real32 Z, real32 W) {
 	v4 Result;
 	Result.X = X;
@@ -369,6 +379,32 @@ RectMinDim(v2 Min, v2 Dim)
 }
 
 
+inline real32
+SafeRatioN(real32 Numerator, real32 Divisor, real32 N)
+{
+	real32 Result = N;
+	if (Divisor != 0.0f)
+	{
+		Result = Numerator / Divisor;
+	}
+
+	return  (Result);
+}
+
+inline real32
+safeRatio0(real32 Numerator, real32 Divisor)
+{
+	real32 Result = SafeRatioN(Numerator, Divisor, 0.0f);
+	return  (Result);
+}
+
+inline real32
+safeRatio1(real32 Numerator, real32 Divisor)
+{
+	real32 Result = SafeRatioN(Numerator, Divisor, 1.0f);
+	return  (Result);
+}
+
 inline rectangle2
 RectCenterHalfDim(v2 Center, v2 HalfDim) 
 {
@@ -407,6 +443,18 @@ AddRadiusTo(rectangle2 A, v2 Radius)
 
 	return (Result);
 }
+
+inline v2
+GetBarycentric(rectangle2 A, v2 P)
+{
+	v2 Result;
+
+	Result.X = safeRatio0(P.X - A.Min.X, A.Max.X - A.Min.X);
+	Result.Y = safeRatio0(P.Y - A.Min.Y, A.Max.Y - A.Min.Y);
+
+	return (Result);
+}
+
 
 
 // Rectangle 3 operations 
@@ -487,31 +535,6 @@ RectangleIntersect(rectangle3 A, rectangle3 B)
 	return (Result);
 }
 
-inline real32
-SafeRatioN(real32 Numerator, real32 Divisor, real32 N)
-{
-	real32 Result = N;
-	if (Divisor != 0.0f)
-	{
-		Result = Numerator / Divisor;
-	}
-
-	return  (Result);
-}
-
-inline real32
-safeRatio0(real32 Numerator, real32 Divisor)
-{
-	real32 Result = SafeRatioN(Numerator, Divisor, 0.0f);
-	return  (Result);
-}
-
-inline real32
-safeRatio1(real32 Numerator, real32 Divisor)
-{
-	real32 Result = SafeRatioN(Numerator, Divisor, 1.0f);
-	return  (Result);
-}
 
 inline v3
 GetBarycentric(rectangle3 A, v3 P)
@@ -534,6 +557,17 @@ AddRadiusTo(rectangle3 A, v3 Radius)
 	Result.Max = A.Max + Radius;
 
 	return (Result);
+}
+
+inline rectangle2
+ToRectangleXY(rectangle3 A)
+{
+	rectangle2 Result;
+
+	Result.Min = A.Min.XY;
+	Result.Max = A.Max.XY;
+
+	return(Result);
 }
 
 
