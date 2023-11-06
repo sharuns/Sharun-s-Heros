@@ -1,6 +1,7 @@
 #pragma once
 
-
+#define MaxRandomNumber 0x05f5c0f3
+#define MinRandomNumber 0x0001035d
  
 global_variable uint32 RandomNumberTable[] =
 {0x37c06df,0x4b984fe,0x082b419,0x31942fe,0x0835107, 
