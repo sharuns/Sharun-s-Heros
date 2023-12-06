@@ -577,24 +577,25 @@ MakeNullCollision(game_state* GameState)
 internal void 
 DrawTestGround(game_state *GameState, game_offscreen_buffer *Buffer)
 {
-	uint32 RandomNumberIndex = 0;
+	//uint32 RandomNumberIndex = 0;
+	random_series Series = Seed(1234);
 
 	v2 Center = 0.5f * V2i(Buffer->Width, Buffer->Height);
 	for (uint32 GrassIndex = 0;
 		GrassIndex < 50;
 		++GrassIndex)
 	{
-		Assert(RandomNumberIndex < ArrayCount(RandomNumberTable));
+		//Assert(RandomNumberIndex < ArrayCount(RandomNumberTable));
 
 		loaded_bitmap* Stamp;
 
-		if (RandomNumberTable[RandomNumberIndex++] % 2)
+		if (RandomChoice(&Series, 2))
 		{
-			Stamp = GameState->Grass + (RandomNumberTable[RandomNumberIndex++] % ArrayCount(GameState->Grass));
+			Stamp = GameState->Grass + RandomChoice(&Series, ArrayCount(GameState->Grass));
 		}
 		else
 		{
-			Stamp = GameState->Stone + (RandomNumberTable[RandomNumberIndex++] % ArrayCount(GameState->Stone));
+			Stamp = GameState->Stone + RandomChoice(&Series, ArrayCount(GameState->Stone));
 		}
 
 
@@ -602,8 +603,7 @@ DrawTestGround(game_state *GameState, game_offscreen_buffer *Buffer)
 		real32 Radius = 5.0f;
 
 		v2 BitmapCenter = 0.5f*V2i(Stamp->Width, Stamp->Height);
-		v2 Offset = { 2.0f * (real32)RandomNumberTable[RandomNumberIndex++] / (real32)MaxRandomNumber - 1,
-					 2.0f * (real32)RandomNumberTable[RandomNumberIndex++] / (real32)MaxRandomNumber - 1 };
+		v2 Offset = { RandomBilateral(&Series), RandomBilateral(&Series) };
 		v2 P = Center + GameState->MetersToPixels * Radius * Offset - BitmapCenter;
 
 		DrawBitmap(Buffer, Stamp, P.X, P.Y);
@@ -613,15 +613,14 @@ DrawTestGround(game_state *GameState, game_offscreen_buffer *Buffer)
 		GrassIndex < 50;
 		++GrassIndex)
 	{
-		Assert(RandomNumberIndex < ArrayCount(RandomNumberTable));
+		//Assert(RandomNumberIndex < ArrayCount(RandomNumberTable));
 
-		loaded_bitmap* Stamp = GameState->Tuft + (RandomNumberTable[RandomNumberIndex++] % ArrayCount(GameState->Tuft));
+		loaded_bitmap* Stamp = GameState->Tuft + RandomChoice(&Series, ArrayCount(GameState->Tuft));
 
 		real32 Radius = 5.0f;
 
 		v2 BitmapCenter = 0.5f * V2i(Stamp->Width, Stamp->Height);
-		v2 Offset = { 2.0f * (real32)RandomNumberTable[RandomNumberIndex++] / (real32)MaxRandomNumber - 1,
-					 2.0f * (real32)RandomNumberTable[RandomNumberIndex++] / (real32)MaxRandomNumber - 1 };
+		v2 Offset = { RandomBilateral(&Series), RandomBilateral(&Series) };
 		v2 P = Center + GameState->MetersToPixels * Radius * Offset - BitmapCenter;
 
 		DrawBitmap(Buffer, Stamp, P.X, P.Y);
@@ -1178,6 +1177,7 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 
 			case EntityType_Space:
 			{
+#if 0
 				for (uint32 VolumeIndex = 0;
 					VolumeIndex < Entity->Collision->VolumeCount;
 					VolumeIndex++)
@@ -1185,7 +1185,7 @@ extern "C" GAME_UPDATE_AND_RENDERER(GameUpdateAndRenderer)
 					sim_entity_collision_volume *Volume = Entity->Collision->Volumes + VolumeIndex;
 					PushRectOutline(&PieceGroup,Volume->OffsetP.XY, 0, Volume->Dim.XY, V4(0, 0.5f, 1.0f, 1), 0.0f);
 				}
-
+#endif
 			}break;
 
 			default:

@@ -826,3 +826,52 @@ global_variable uint32 RandomNumberTable[] =
 0x4676aa7
 
 };
+
+struct random_series
+{
+	uint32 Index;
+};
+
+inline random_series Seed(uint32 Value)
+{
+	random_series Series;
+
+	Series.Index = (Value % ArrayCount(RandomNumberTable));
+
+	return Series;
+}
+
+inline uint32 NextRandomUInt32(random_series* Series)
+{
+	uint32 Result = RandomNumberTable[Series->Index++];
+	if (Series->Index >= ArrayCount(RandomNumberTable))
+	{
+		Series->Index = 0;
+	}
+	return Result;
+}
+
+inline uint32 RandomChoice(random_series* Series, uint32 ChoiceCount) 
+{
+	uint32 Result = NextRandomUInt32(Series) % ChoiceCount;
+	return Result;
+}
+
+inline real32 RandomUnilateral(random_series* Series)
+{
+	real32 Divisor = 1.0f/ (real32)MaxRandomNumber;
+	real32 Result = Divisor * (real32)NextRandomUInt32(Series);
+	return Result;
+}
+
+inline real32 RandomBilateral(random_series* Series)
+{
+	real32 Result = 2.0f * RandomUnilateral(Series) - 1.0f;
+	return Result;
+}
+
+inline real32 RandomBetween(random_series *Series, real32 Min, real32 Max)
+{
+	real32 Result = Lerp(Min, RandomUnilateral(Series), Max);
+	return Result;
+}
