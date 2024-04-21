@@ -116,6 +116,7 @@ typedef DEBUG_PLATFORM_WRITE_ENTIRE_FILE(debug_platform_write_entire_file);
 
 #endif
 
+#define BITMAP_BYTES_PER_PIXEL 4 
 
 struct game_offscreen_buffer {
 
@@ -124,7 +125,6 @@ struct game_offscreen_buffer {
 	int Width;
 	int Height;
 	int Pitch;
-	int BytesPerPixel;
 };
 
 struct game_sound_output_buffer {
@@ -237,9 +237,19 @@ GAME_GET_SOUND_SAMPLES(GameGetSoundSamplesStub) {
 #define Maximum(A,B) ((A > B) ? (A) : (B))
 
 
+
 struct memory_arena {
 	memory_index Size;
 	uint8* Base;
+	memory_index Used;
+
+	int32 TempCount;
+
+};
+
+struct temporary_memory
+{
+	memory_arena* Arena;
 	memory_index Used;
 
 };
@@ -250,6 +260,7 @@ InitailizeArena(memory_arena* Arena, memory_index Size, void * Base) {
 	Arena->Size = Size;
 	Arena->Base = (uint8 *)Base;
 	Arena->Used = 0;
+	Arena->TempCount = 0;
 }
 
 //Primitive memory allocator for now, which pushed our tiles from previously stored in stack to the 
@@ -268,6 +279,36 @@ PushSize_(memory_arena* Arena, memory_index Size) {
 	return(Result);
 
 }
+
+inline temporary_memory
+BeginTemporaryMemory(memory_arena* Arena)
+{
+	temporary_memory Result;
+	Result.Arena = Arena;
+	Result.Used = Arena->Used;
+
+	++Arena->TempCount;
+
+	return(Result);
+
+}
+
+inline void
+EndTemporaryMemory(temporary_memory TempMem)
+{
+	memory_arena* Arena = TempMem.Arena;
+	Assert(Arena->Used >= TempMem.Used)
+		Arena->Used = TempMem.Used;
+	Assert(Arena->TempCount > 0);
+	--Arena->TempCount;
+}
+
+inline void 
+CheckArena(memory_arena* Arena)
+{
+	Assert(Arena->TempCount == 0);
+}
+
 
 #define ZeroStruct(Instance) ZeroSize(sizeof(Instance), &(Instance))
 

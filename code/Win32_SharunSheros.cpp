@@ -1239,7 +1239,7 @@ extern "C"{
 						Buffer.Width = Global_BackBuffer.Width;
 						Buffer.Height = Global_BackBuffer.Height;
 						Buffer.Pitch = Global_BackBuffer.Pitch;
-						Buffer.BytesPerPixel = 4;
+						
 
 						//Record the input state for live code debugging 
 						if (Win32State.InputRecordingIndex) {

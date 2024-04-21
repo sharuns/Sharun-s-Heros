@@ -832,6 +832,15 @@ struct random_series
 	uint32 Index;
 };
 
+inline random_series RandomSeed(uint32 Value)
+{
+	random_series Series;
+
+	Series.Index = (Value % ArrayCount(RandomNumberTable));
+
+	return Series;
+}
+
 inline random_series Seed(uint32 Value)
 {
 	random_series Series;
@@ -873,5 +882,11 @@ inline real32 RandomBilateral(random_series* Series)
 inline real32 RandomBetween(random_series *Series, real32 Min, real32 Max)
 {
 	real32 Result = Lerp(Min, RandomUnilateral(Series), Max);
+	return Result;
+}
+
+inline int32 RandomBetween(random_series* Series, int32 Min, int32 Max)
+{
+	int32 Result = Min + (int32)(NextRandomUInt32(Series) % ((Max + 1) - Min));
 	return Result;
 }

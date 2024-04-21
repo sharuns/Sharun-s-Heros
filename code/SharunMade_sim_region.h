@@ -14,7 +14,7 @@ struct move_spec
 
 enum entity_type {
 
-	Entity_Null,
+	EntityType_Null,
 	EntityType_Space,
 	EntityType_Hero,
 	EntityType_Wall,

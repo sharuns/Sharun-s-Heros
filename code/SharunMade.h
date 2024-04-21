@@ -6,17 +6,21 @@ Author : Sharun S
 Place : Chennai , India 
 */
 
+
+
 #include "SharunMade_Intrinsics.h"
 #include "SharunMade_Math.h"
 #include "SharunMadeWorld.h"
 #include "SharunMade_sim_region.h"
 #include "SharunMade_Entity.h"
 
+
 struct loaded_bitmap{
 
 	int32 Width;
 	int32 Height;
-	uint32 * Pixels;
+	int32 Pitch;
+	void * Memory;
 };
 
 struct hero_bitmaps{
@@ -78,10 +82,19 @@ struct pairwise_collision_rule
 	pairwise_collision_rule* NextInHash;
 };
 
+struct ground_buffer 
+{
+	world_position P;
+	void* Memory;
+};
+
 struct game_state{
 
 	memory_arena WorldArena;
+	memory_arena TransientArena;
 	world * World;
+
+	real32 TypicalFloorHeight;
 
 	uint32 CameraFollowingEntityIndex;
 	world_position CameraP;
@@ -104,6 +117,7 @@ struct game_state{
 	loaded_bitmap Sword;
 
 	real32 MetersToPixels;
+	real32 PixelsToMeters;
 
 	pairwise_collision_rule *CollisionRuleHash[256];
 	pairwise_collision_rule* FirstFreeCollisionRule;
@@ -117,10 +131,22 @@ struct game_state{
 	sim_entity_collision_volume_group* FamiliarCollision;
 	sim_entity_collision_volume_group* StandardRoomCollision;
 
+	
+
+};
+
+struct transient_state {
+	
+	bool32 IsInitialized;
+	memory_arena TranArena;
+	uint32 GroundBufferCount;
+	loaded_bitmap GroundBitmapTemplate;
+	ground_buffer* GroundBuffers;
 };
 
 struct entity_visible_piece_group
 {
+	
 	uint32 PieceCount;
 	game_state* GameState;
 	entity_visible_piece Pieces[32];
