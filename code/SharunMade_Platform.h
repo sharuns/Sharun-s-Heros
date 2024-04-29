@@ -39,7 +39,7 @@ Place : Alleppey , India
 #endif
 
 #include <stdint.h>
-
+#include<float.h>
 
 //for better readability purposes
 #define internal static
@@ -65,6 +65,8 @@ typedef size_t memory_index;
 
 typedef  float real32;
 typedef  double real64; //IEEE 754 spec, for representation of a float in binary
+
+#define Real32Maximum FLT_MAX
 
 #if SHARUN_DEBUG_SLOW
 #define Assert(Expression) if(!(Expression)) {*(int *)0 = 0;}
