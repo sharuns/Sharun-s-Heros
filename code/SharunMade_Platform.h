@@ -270,6 +270,7 @@ InitailizeArena(memory_arena* Arena, memory_index Size, void * Base) {
 
 #define PushStruct(Arena,type) (type * )PushSize_(Arena, sizeof(type))
 #define PushArray(Arena,Count,type) (type*)PushSize_(Arena, (Count)*sizeof(type))
+#define PushSize(Arena,Size) PushSize_(Arena, Size)
 
 inline void*
 PushSize_(memory_arena* Arena, memory_index Size) {

@@ -45,18 +45,6 @@ struct low_entity {
 };
 
 
-struct entity_visible_piece
-{
-	loaded_bitmap* Bitmap;
-	v2 Offset;
-	real32 OffsetZ;
-	real32 EntityZC;
-
-	real32 R, G, B, A;
-	v2 Dim;
-};
-
-
 
 struct low_entity_chunk_reference
 {
@@ -85,7 +73,7 @@ struct pairwise_collision_rule
 struct ground_buffer 
 {
 	world_position P;
-	void* Memory;
+	loaded_bitmap Bitmap;
 };
 
 struct game_state{
@@ -140,17 +128,9 @@ struct transient_state {
 	bool32 IsInitialized;
 	memory_arena TranArena;
 	uint32 GroundBufferCount;
-	loaded_bitmap GroundBitmapTemplate;
 	ground_buffer* GroundBuffers;
 };
 
-struct entity_visible_piece_group
-{
-	
-	uint32 PieceCount;
-	game_state* GameState;
-	entity_visible_piece Pieces[32];
-};
 
 inline low_entity*
 GetLowEntity(game_state* GameState, uint32 Index)
