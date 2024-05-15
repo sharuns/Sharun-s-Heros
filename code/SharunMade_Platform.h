@@ -75,6 +75,7 @@ typedef  double real64; //IEEE 754 spec, for representation of a float in binary
 #endif
 
 #define InvalidCodePath Assert(!"InvalidCodePath");
+#define InvalidDefaultCase {default : {InvalidCodePath;}} break
 
 #define Kilobytes(Value) ((Value)*1024)
 #define Megabytes(Value) (Kilobytes(Value)*1024)
